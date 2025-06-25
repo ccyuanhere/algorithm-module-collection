@@ -1,0 +1,11 @@
+{
+    "window_size": 1024,
+    "threshold_factor": 1.5,
+    "use_squared_energy": true,
+    "feature_selection": {
+        "use_iq": true,
+        "use_amplitude": true,
+        "use_phase": true,
+        "use_spectrum": true
+    }
+}

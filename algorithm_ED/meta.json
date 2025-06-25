@@ -1,0 +1,15 @@
+{
+    "name": "能量检测频谱感知算法",
+    "author": "dilireba",
+    "task": "algorithm",
+    "input_type": ["np.ndarray[float32]"],
+    "input_size": "batch_size * rand",
+    "output_type": ["np.ndarray[bool]"],
+    "output_size": "batch_size * (rand // window_size)",
+    "description": "基于能量检测的频谱感知算法，通过计算接收信号的能量并与预设阈值比较来判断主用户是否存在。适用于认知无线电系统中的频谱感知任务，尤其适合对实时性要求较高的场景。",
+    "version": "1.0",
+    "tags": ["signal_processing", "spectrum_sensing", "energy_detection", "cognitive_radio"],
+    "dependencies": ["config.json"],
+    "example_input": "data/example_input.npy",
+    "supported_features": ["单通道信号检测", "多通道信号检测", "能量阈值自适应调整", "性能评估"]
+}
