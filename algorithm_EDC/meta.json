@@ -1,0 +1,15 @@
+{
+    "name": "Cyclostationary Feature Detection",
+    "author": "C&G",
+    "task": "algorithm",
+    "input_type": ["np.ndarray[float32]"],
+    "input_size": "batch_size * rand",
+    "output_type": ["np.ndarray[int32]"],
+    "output_size": "batch_size * 1",
+    "description": "基于循环平稳特征的频谱感知算法，利用信号的周期性特征进行主用户检测。该算法计算信号的谱相关密度函数(SCD)，并在目标循环频率处进行特征检测。",
+    "version": "1.0",
+    "tags": ["spectrum_sensing", "cyclostationarity", "cognitive_radio"],
+    "dependencies": ["config.json"],
+    "example_input": "data/example_input.npy",
+    "supported_features": ["多信号段处理", "性能评估", "参数可配置"]
+}

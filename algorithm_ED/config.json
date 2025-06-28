@@ -7,5 +7,9 @@
         "use_amplitude": true,
         "use_phase": true,
         "use_spectrum": true
+    },
+    "threshold_calculation": {
+        "method": "min_energy",
+        "safety_margin": 1.2
     }
 }

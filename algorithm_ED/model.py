@@ -88,15 +88,16 @@ def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = Non
             # 这里简化处理，使用固定阈值因子
             noise_energy = energy[labels == 0]
             if len(noise_energy) > 0:
-                threshold = np.mean(noise_energy) * threshold_factor
+                threshold = np.mean(noise_energy) * threshold_factor 
                 result["log"] += f"使用训练模式阈值: {threshold:.4f} (基于噪声能量)\n"
             else:
                 threshold = np.mean(energy) * threshold_factor
                 result["log"] += f"使用默认阈值: {threshold:.4f} (所有样本均为主用户)\n"
         else:
-            # 在预测模式下，使用默认阈值
-            threshold = np.mean(energy) * threshold_factor
-            result["log"] += f"使用预测模式阈值: {threshold:.4f}\n"
+            # 使用所有样本中最低能量的窗口作为噪声基准
+            min_energy = np.min(energy)
+            threshold = min_energy * threshold_factor * 1.2  # 增加20%的安全裕度
+            result["log"] += f"使用预测模式阈值: {threshold:.4f} (基于最低能量窗口)\n"
         
         # 能量检测决策
         detection_result = energy > threshold
@@ -112,22 +113,25 @@ def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = Non
             if not isinstance(labels, np.ndarray):
                 raise TypeError(f"标签必须是numpy数组，得到: {type(labels)}")
             
-            # 处理标签形状
-            if labels.ndim == 2:
-                # 假设标签是每批次一个值
-                if labels.shape[1] == 1:
-                    labels = labels.flatten()
-                else:
-                    raise ValueError(f"2D标签的第二维度必须为1，得到: {labels.shape[1]}")
-            
             # 确保标签长度与批次大小匹配
             if len(labels) != batch_size:
                 raise ValueError(f"标签数量({len(labels)})与批次大小({batch_size})不匹配")
             
-            # 计算评估指标
-            metrics = calculate_metrics(detection_result, labels)
+            # 计算评估指标 - 窗口级评估
+            # 注意：标签是样本级的，但我们需要窗口级的评估
+            # 创建窗口级标签：每个样本的所有窗口使用相同的标签
+            window_labels = np.repeat(labels[:, np.newaxis], num_windows, axis=1)
+            
+            metrics = calculate_metrics(detection_result, window_labels)
             result["metrics"] = metrics
-            result["log"] += f", 检测准确率: {metrics.get('accuracy', 0):.4f}\n"
+            
+            # 添加详细的指标日志
+            result["log"] += (
+                f"评估指标: 准确率={metrics.get('accuracy', 0):.4f}, "
+                f"精确率={metrics.get('precision', 0):.4f}, "
+                f"召回率={metrics.get('recall', 0):.4f}, "
+                f"虚警率={metrics.get('false_alarm_rate', 0):.4f}\n"
+            )
         
         return result
     
@@ -146,8 +150,8 @@ def calculate_metrics(detection_result: np.ndarray, labels: np.ndarray) -> Dict[
     计算评估指标
     
     Args:
-        detection_result: 检测结果
-        labels: 真实标签
+        detection_result: 检测结果 (batch_size, num_windows)
+        labels: 真实标签 (batch_size, num_windows)
         
     Returns:
         dict: 评估指标字典
@@ -156,31 +160,26 @@ def calculate_metrics(detection_result: np.ndarray, labels: np.ndarray) -> Dict[
     if not isinstance(detection_result, np.ndarray) or not isinstance(labels, np.ndarray):
         raise TypeError("检测结果和标签必须是numpy数组")
     
-    batch_size, num_windows = detection_result.shape
-    
-    # 展平检测结果（每批次一个决策）
-    # 这里使用多数投票：如果一个批次中超过一半的窗口检测到主用户，则认为该批次有主用户
-    batch_decisions = np.sum(detection_result, axis=1) > (num_windows / 2)
-    
-    # 确保标签长度与批次大小匹配
-    if len(labels) != batch_size:
-        raise ValueError(f"标签数量({len(labels)})与批次大小({batch_size})不匹配")
+    # 展平所有窗口结果
+    detection_flat = detection_result.flatten()
+    labels_flat = labels.flatten()
     
     # 计算TP, TN, FP, FN
-    tp = np.sum((batch_decisions == 1) & (labels == 1))
-    tn = np.sum((batch_decisions == 0) & (labels == 0))
-    fp = np.sum((batch_decisions == 1) & (labels == 0))
-    fn = np.sum((batch_decisions == 0) & (labels == 1))
+    tp = np.sum((detection_flat == True) & (labels_flat == 1))
+    tn = np.sum((detection_flat == False) & (labels_flat == 0))
+    fp = np.sum((detection_flat == True) & (labels_flat == 0))
+    fn = np.sum((detection_flat == False) & (labels_flat == 1))
     
     # 计算指标
-    accuracy = (tp + tn) / (tp + tn + fp + fn) if (tp + tn + fp + fn) > 0 else 0
+    total = tp + tn + fp + fn
+    accuracy = (tp + tn) / total if total > 0 else 0
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0
     f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
     
     # 计算虚警概率和检测概率
     false_alarm_rate = fp / (fp + tn) if (fp + tn) > 0 else 0
-    detection_rate = tp / (tp + fn) if (tp + fn) > 0 else 0
+    detection_rate = recall  # 等同于召回率
     
     return {
         "accuracy": accuracy,
@@ -188,5 +187,9 @@ def calculate_metrics(detection_result: np.ndarray, labels: np.ndarray) -> Dict[
         "recall": recall,
         "f1_score": f1_score,
         "false_alarm_rate": false_alarm_rate,
-        "detection_rate": detection_rate
+        "detection_rate": detection_rate,
+        "tp": int(tp),
+        "tn": int(tn),
+        "fp": int(fp),
+        "fn": int(fn)
     }

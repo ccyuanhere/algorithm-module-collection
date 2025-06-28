@@ -32,7 +32,22 @@ def generate_signal(signal_length: int, snr_db: float, has_primary_user: bool = 
         # 组合信号和噪声
         signal = primary_signal * scaling_factor + noise
     else:
-        # 只有噪声
+        # 只有噪声，但加入随机干扰脉冲
+        # 增加干扰脉冲以提高虚警率
+        num_pulses = np.random.randint(3, 8)  # 3-7个干扰脉冲
+        pulse_positions = np.random.choice(signal_length, num_pulses, replace=False)
+        pulse_amplitudes = np.random.uniform(15, 25, num_pulses)  # 15-25倍幅度的干扰
+        
+        # 添加实部和虚部的干扰
+        for i in range(num_pulses):
+            pos = pulse_positions[i]
+            amp = pulse_amplitudes[i]
+            # 添加持续10个点的强干扰
+            start = max(0, pos-5)
+            end = min(signal_length, pos+5)
+            for p in range(start, end):
+                noise[p] += amp * (np.random.normal(0, 1) + 1j * np.random.normal(0, 1))
+        
         signal = noise
     
     # 转换为实部和虚部的二维数组
@@ -74,23 +89,25 @@ def generate_example_data(num_samples: int = 100, signal_length: int = 8192, snr
     inputs = np.array(inputs)
     labels = np.array(labels)
     
-    # 计算输出（这里使用简化的能量检测作为参考）
+    # 计算输出（使用简化的能量检测作为参考）
     outputs = []
     window_size = 1024
     threshold_factor = 1.5
-    
+
     for signal in inputs:
         # 转换为复数形式
         signal_complex = signal[:, 0] + 1j * signal[:, 1]
         
         # 计算能量
-        energy = np.zeros(signal_length // window_size)
-        for j in range(0, signal_length - window_size + 1, window_size):
+        num_windows = signal_length // window_size
+        energy = np.zeros(num_windows)
+        for j in range(0, num_windows * window_size, window_size):
             window = signal_complex[j:j + window_size]
             energy[j // window_size] = np.sum(np.abs(window) ** 2)
         
         # 计算阈值
-        threshold = np.mean(energy) * threshold_factor
+        min_energy = np.min(energy)
+        threshold = min_energy * threshold_factor * 1.2  # 增加20%安全裕度
         
         # 决策
         decision = energy > threshold
