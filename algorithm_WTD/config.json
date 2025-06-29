@@ -1,0 +1,12 @@
+{
+    "wavelet": "db8",
+    "level": 5,
+    "model_type": "svm",
+    "signal_length": "rand",
+    "features": [
+        "max_detail_energy",
+        "entropy",
+        "energy_ratio",
+        "approx_energy_ratio"
+    ]
+}

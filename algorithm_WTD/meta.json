@@ -1,0 +1,15 @@
+{
+    "name": "Wavelet Transform Detection (Enhanced)",
+    "author": "C&G",
+    "task": "algorithm",
+    "input_type": ["np.ndarray[complex64]"],
+    "input_size": "batch_size * rand",
+    "output_type": ["np.ndarray[int32]"],
+    "output_size": "batch_size * 1",
+    "description": "Enhanced wavelet-based spectrum sensing algorithm using multi-dimensional wavelet features and SVM classification for robust primary user detection in cognitive radio systems.",
+    "version": "2.0",
+    "tags": ["spectrum_sensing", "wavelet_transform", "svm", "cognitive_radio"],
+    "dependencies": ["config.json", "models/wtd_model.pkl"],
+    "example_input": "data/example_input.npy",
+    "supported_features": ["multi-feature analysis", "SVM classification", "3D visualization"]
+}

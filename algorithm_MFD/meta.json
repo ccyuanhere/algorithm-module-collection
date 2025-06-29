@@ -1,15 +1,43 @@
 {
-    "name": "Matched Filter Detection",
-    "author": "Algorithm Developer",
+    "name": "Matched Filter Detection (MFD)",
+    "author": "Communication Algorithm Team",
     "task": "algorithm",
-    "input_type": ["np.ndarray[float32]"],
-    "input_size": "batch_size * rand",
-    "output_type": ["np.ndarray[int32]"],
-    "output_size": "batch_size * rand",
-    "description": "匹配滤波检测算法，通过与已知信号模板匹配检测主用户信号的存在。",
-    "version": "1.0",
-    "tags": ["matched_filter", "detection", "signal_processing"],
+    "input_type": ["np.ndarray[complex64]", "dict"],
+    "input_size": "batch_size * 2 * rand",
+    "output_type": ["dict"],
+    "output_size": "structured_detection_results",
+    "description": "匹配滤波检测算法，通过设计与已知信号波形匹配的滤波器，实现最优信噪比的信号检测。适用于已知信号模式的频谱感知和通信信号检测场景。该算法在已知发送信号特征时具有最佳的检测性能。",
+    "version": "2.0",
+    "tags": ["matched_filter", "signal_detection", "spectrum_sensing", "communication", "BPSK", "correlation"],
     "dependencies": ["config.json"],
     "example_input": "data/example_input.npy",
-    "supported_features": ["High SNR", "Low latency"]
+    "supported_features": [
+        "复数信号处理",
+        "BPSK调制信号检测",
+        "自适应阈值",
+        "时延估计",
+        "多信号批处理",
+        "性能评估指标",
+        "虚警率控制"
+    ],
+    "algorithm_parameters": {
+        "known_sequence": "已知的比特序列模板",
+        "fc": "载波频率 (Hz)",
+        "fs": "采样频率 (Hz)", 
+        "duration_per_bit": "每比特持续时间 (s)",
+        "false_alarm_rate": "期望虚警率",
+        "correlation_mode": "相关运算模式"
+    },
+    "performance_characteristics": {
+        "optimal_snr": "在已知信号条件下提供最优信噪比增益",
+        "complexity": "O(N*M) - N为信号长度，M为模板长度",
+        "latency": "低延迟，适合实时检测",
+        "accuracy": "高精度，特别是在高SNR条件下"
+    },
+    "application_scenarios": [
+        "认知无线电频谱感知",
+        "数字通信信号检测",
+        "雷达目标检测",
+        "同步信号检测"
+    ]
 }
