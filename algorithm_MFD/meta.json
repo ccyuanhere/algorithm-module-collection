@@ -1,0 +1,15 @@
+{
+    "name": "Matched Filter Detection",
+    "author": "Algorithm Developer",
+    "task": "algorithm",
+    "input_type": ["np.ndarray[float32]"],
+    "input_size": "batch_size * rand",
+    "output_type": ["np.ndarray[int32]"],
+    "output_size": "batch_size * rand",
+    "description": "匹配滤波检测算法，通过与已知信号模板匹配检测主用户信号的存在。",
+    "version": "1.0",
+    "tags": ["matched_filter", "detection", "signal_processing"],
+    "dependencies": ["config.json"],
+    "example_input": "data/example_input.npy",
+    "supported_features": ["High SNR", "Low latency"]
+}
