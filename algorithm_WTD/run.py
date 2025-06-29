@@ -2,18 +2,25 @@ import json
 import os
 import time
 import numpy as np
+from typing import Dict, Any, Optional
 from model import process
 
-def run(input_data: dict, config_path: str = None) -> dict:
+def run(input_data: Dict[str, Any], config_path: Optional[str] = None) -> Dict[str, Any]:
     """
-    标准运行接口 - 小波变换检测算法的统一入口
+    标准运行接口 - 所有算法的统一入口
     
     Args:
-        input_data (dict): 输入数据字典
+        input_data (dict): 输入数据字典，根据算法类型包含不同字段
         config_path (str, optional): 配置文件路径
         
     Returns:
         dict: 统一格式的返回结果
+        {
+            "result": Any,        # 主结果（必需）
+            "metrics": dict,      # 可选评估值（可为空字典）
+            "log": str,          # 日志信息
+            "success": bool      # 是否成功
+        }
     """
     try:
         # 设置默认配置文件路径

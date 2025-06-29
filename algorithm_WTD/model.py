@@ -6,6 +6,7 @@ import joblib
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import matplotlib.pyplot as plt
+from typing import Dict, Optional,Any
 
 def _compute_wavelet_features(signal, wavelet, level):
     """计算改进的小波特征"""
@@ -51,14 +52,14 @@ def _compute_wavelet_features(signal, wavelet, level):
         approx_energy_ratio
     ]
 
-def process(config: dict, signal: np.ndarray, labels: np.ndarray = None, mode: str = 'predict') -> dict:
+def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = None, mode: str = 'predict') -> Dict[str, Any]:
     """
-    小波变换频谱检测核心处理函数
+    处理函数 - 实际的算法逻辑
     
     Args:
         config: 配置参数
-        signal: 输入信号 (n_samples, signal_length)
-        labels: 标签 (n_samples,)
+        signal: 输入信号
+        labels: 标签（可选）
         mode: 运行模式
         
     Returns:
@@ -163,12 +164,24 @@ def _calculate_metrics(predictions, labels):
     if len(predictions) != len(labels):
         raise ValueError("Predictions and labels must have the same length")
     
+     # 计算检测概率（Pd）
+    true_positives = np.sum((predictions == 1) & (labels == 1))
+    actual_positives = np.sum(labels == 1)
+    detection_probability = true_positives / actual_positives if actual_positives > 0 else 0
+    
+    # 计算虚警概率（Pfa）
+    false_positives = np.sum((predictions == 1) & (labels == 0))
+    actual_negatives = np.sum(labels == 0)
+    false_alarm_probability = false_positives / actual_negatives if actual_negatives > 0 else 0
+
     # 计算性能指标
     return {
         'accuracy': accuracy_score(labels, predictions),
         'precision': precision_score(labels, predictions, zero_division=0),
         'recall': recall_score(labels, predictions, zero_division=0),
-        'f1_score': f1_score(labels, predictions, zero_division=0)
+        'f1_score': f1_score(labels, predictions, zero_division=0),
+        'detection_probability': detection_probability,
+        'false_alarm_probability': false_alarm_probability
     }
 
 def _visualize_features(features, labels, mode='train'):
