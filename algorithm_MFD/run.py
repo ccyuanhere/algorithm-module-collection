@@ -176,66 +176,67 @@ def build_result_by_mode(result: Dict[str, Any], mode: str) -> Dict[str, Any]:
 
 # 测试函数
 def test():
-    """测试函数"""
-    print("=== 匹配滤波检测算法测试 ===")
+    """使用挑战性数据测试匹配滤波检测算法"""
+    print("=== 匹配滤波检测算法测试（使用挑战性数据） ===")
     
-    # 生成测试数据
-    N = 50
-    signal_length = 128
+    # 加载生成的测试数据
+    data_dir = os.path.join(os.path.dirname(__file__), 'data')
     
-    # 生成测试信号 - 复数信号
-    np.random.seed(42)
-    test_signal = 0.5 * (np.random.randn(N, signal_length) + 1j * np.random.randn(N, signal_length))
+    try:
+        test_signal = np.load(os.path.join(data_dir, 'example_input.npy'))
+        test_labels = np.load(os.path.join(data_dir, 'example_labels.npy'))
+        print(f"加载数据成功:")
+        print(f"  信号形状: {test_signal.shape}")
+        print(f"  标签分布: {np.bincount(test_labels)}")
+        print(f"  信号功率范围: {np.var(test_signal, axis=1).min():.4f} - {np.var(test_signal, axis=1).max():.4f}")
+    except FileNotFoundError:
+        print("未找到测试数据，请先运行 make.py 生成数据")
+        return
     
-    # 添加已知BPSK信号到前25个样本中
-    # 使用简单的BPSK序列 [1, -1, 1, 1, -1, -1, 1, -1]
-    template_bits = np.array([1, -1, 1, 1, -1, -1, 1, -1])
-    samples_per_bit = 8
-    signal_template = np.repeat(template_bits, samples_per_bit).astype(complex)
+    # 测试不同的阈值
+    thresholds = [0.1, 0.2, 0.3, 0.4, 0.5]
+    print(f"\n=== 测试不同阈值的性能 ===")
     
-    for i in range(25):  # 前25个样本包含信号
-        if signal_length >= len(signal_template):
-            start_pos = np.random.randint(0, signal_length - len(signal_template) + 1)
-            # 添加信号，强度为2.0
-            test_signal[i, start_pos:start_pos+len(signal_template)] += 2.0 * signal_template
+    for threshold in thresholds:
+        print(f"\n--- 阈值 {threshold} ---")
+        
+        # 修改配置文件
+        config_path = os.path.join(os.path.dirname(__file__), 'config.json')
+        config = {
+            "threshold": threshold,
+            "template_type": "bpsk",
+            "samples_per_bit": 8
+        }
+        
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
+        
+        # 测试 evaluate 模式
+        input_data_evaluate = {
+            "signal": test_signal,
+            "labels": test_labels,
+            "mode": "evaluate"
+        }
+        
+        result_evaluate = run(input_data_evaluate, config_path)
+        
+        if result_evaluate['success'] and result_evaluate['metrics']:
+            metrics = result_evaluate['metrics']
+            print(f"检测率: {metrics.get('detection_rate', 0):.4f}")
+            print(f"虚警率: {metrics.get('false_alarm_rate', 0):.4f}")
+            print(f"准确率: {metrics.get('accuracy', 0):.4f}")
+            print(f"F1分数: {metrics.get('f1_score', 0):.4f}")
+            
+            # 显示混淆矩阵
+            if 'confusion_matrix' in result_evaluate['result']:
+                cm = result_evaluate['result']['confusion_matrix']
+                print(f"混淆矩阵: TP={cm['tp']}, TN={cm['tn']}, FP={cm['fp']}, FN={cm['fn']}")
+        else:
+            print("测试失败!")
     
-    # 生成标签：前25个有信号，后25个无信号
-    test_labels = np.zeros(N)
-    test_labels[:25] = 1
+    # 测试 train 模式（自动寻找最优阈值）
+    print(f"\n=== 测试训练模式（自动阈值校准） ===")
     
-    # 测试1: predict模式
-    print("\n--- 测试 predict 模式 ---")
-    input_data_predict = {
-        "signal": test_signal,
-        "mode": "predict"
-    }
-    
-    result_predict = run(input_data_predict)
-    print(f"Predict模式 - 成功: {result_predict['success']}")
-    print(f"检测到的信号数量: {np.sum(result_predict['result']['detections'])}")
-    print(f"日志:\n{result_predict['log']}")
-    
-    # 测试2: evaluate模式
-    print("\n--- 测试 evaluate 模式 ---")
-    input_data_evaluate = {
-        "signal": test_signal,
-        "labels": test_labels,
-        "mode": "evaluate"
-    }
-    
-    result_evaluate = run(input_data_evaluate)
-    print(f"Evaluate模式 - 成功: {result_evaluate['success']}")
-    print(f"日志:\n{result_evaluate['log']}")
-    
-    if result_evaluate['success'] and result_evaluate['metrics']:
-        print(f"\n性能指标:")
-        metrics = result_evaluate['metrics']
-        for key, value in metrics.items():
-            if isinstance(value, (int, float)):
-                print(f"  {key}: {value:.4f}")
-    
-    # 测试3: train模式（参数校准）
-    print("\n--- 测试 train 模式 ---")
     input_data_train = {
         "signal": test_signal,
         "labels": test_labels,
@@ -243,12 +244,58 @@ def test():
     }
     
     result_train = run(input_data_train)
-    print(f"Train模式 - 成功: {result_train['success']}")
-    print(f"日志:\n{result_train['log']}")
     
     if result_train['success']:
-        calibrated_threshold = result_train['result'].get('calibrated_threshold', 0)
-        print(f"校准后的阈值: {calibrated_threshold:.4f}")
+        print(f"原始阈值: {result_train['result'].get('correlation_threshold', 0):.4f}")
+        print(f"校准后阈值: {result_train['result'].get('calibrated_threshold', 0):.4f}")
+        
+        if 'calibration_metrics' in result_train['result']:
+            cal_metrics = result_train['result']['calibration_metrics']
+            print(f"校准后性能:")
+            print(f"  检测率: {cal_metrics.get('detection_rate', 0):.4f}")
+            print(f"  虚警率: {cal_metrics.get('false_alarm_rate', 0):.4f}")
+            print(f"  准确率: {cal_metrics.get('accuracy', 0):.4f}")
+            print(f"  F1分数: {cal_metrics.get('f1_score', 0):.4f}")
+    else:
+        print("训练模式测试失败!")
+    
+    # 分析检测值分布
+    print(f"\n=== 分析检测值分布 ===")
+    
+    input_data_predict = {
+        "signal": test_signal,
+        "mode": "predict"
+    }
+    
+    result_predict = run(input_data_predict)
+    
+    if result_predict['success']:
+        detection_values = result_predict['result']['detection_values']
+        detection_values = np.array(detection_values)
+        
+        # 分析有信号和无信号样本的检测值
+        signal_values = detection_values[test_labels == 1]
+        noise_values = detection_values[test_labels == 0]
+        
+        print(f"有信号样本检测值统计:")
+        print(f"  均值: {np.mean(signal_values):.4f}")
+        print(f"  标准差: {np.std(signal_values):.4f}")
+        print(f"  最小值: {np.min(signal_values):.4f}")
+        print(f"  最大值: {np.max(signal_values):.4f}")
+        
+        print(f"无信号样本检测值统计:")
+        print(f"  均值: {np.mean(noise_values):.4f}")
+        print(f"  标准差: {np.std(noise_values):.4f}")
+        print(f"  最小值: {np.min(noise_values):.4f}")
+        print(f"  最大值: {np.max(noise_values):.4f}")
+        
+        # 计算重叠度
+        overlap = np.sum((signal_values < np.max(noise_values)) & (signal_values > np.min(noise_values)))
+        print(f"检测值重叠样本数: {overlap}/{len(signal_values)}")
+        
+        # 建议阈值
+        suggested_threshold = (np.mean(signal_values) + np.mean(noise_values)) / 2
+        print(f"建议阈值: {suggested_threshold:.4f}")
 
 if __name__ == "__main__":
     test()

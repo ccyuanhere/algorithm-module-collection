@@ -1,13 +1,5 @@
 {
-    "threshold": 0.5,
-    "template_type": "bpsk",
-    "noise_variance": 1.0,
-    "detection_parameters": {
-        "normalize_correlation": true,
-        "use_envelope_detection": false
-    },
-    "performance_tuning": {
-        "adaptive_threshold": true,
-        "roc_optimization": true
-    }
+  "threshold": 0.5,
+  "template_type": "bpsk",
+  "samples_per_bit": 8
 }

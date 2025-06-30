@@ -14,6 +14,19 @@ def generate_bpsk_template(template_bits: np.ndarray, samples_per_bit: int = 8):
     template_signal = np.repeat(template_bits, samples_per_bit).astype(complex)
     return template_signal
 
+def design_matched_filter(template: np.ndarray):
+    """
+    设计匹配滤波器
+    匹配滤波器的冲激响应 h(t) = s*(T-t)，即已知信号的时间反转共轭
+    Args:
+        template: 模板信号
+    Returns:
+        匹配滤波器冲激响应
+    """
+    # 匹配滤波器 = 模板信号的时间反转共轭
+    # 在离散域: h[n] = s*[N-1-n]
+    return np.conj(np.flip(template))
+
 def matched_filter_correlation(signal: np.ndarray, template: np.ndarray):
     """
     执行匹配滤波相关运算
@@ -23,8 +36,14 @@ def matched_filter_correlation(signal: np.ndarray, template: np.ndarray):
     Returns:
         相关值和最大相关位置
     """
-    # 计算归一化相关
-    correlation = np.correlate(signal, np.conj(template), mode='full')
+    # 设计匹配滤波器（时间反转共轭）
+    matched_filter = design_matched_filter(template)
+    
+    # 方法1: 使用卷积实现匹配滤波
+    correlation = np.convolve(signal, matched_filter, mode='full')
+    
+    # 方法2: 或者使用相关函数（数学上等价）
+    # correlation = np.correlate(signal, np.conj(template), mode='full')
     
     # 归一化
     signal_energy = np.sqrt(np.sum(np.abs(signal)**2))
