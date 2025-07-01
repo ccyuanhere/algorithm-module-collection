@@ -1,207 +1,215 @@
 import numpy as np
-from scipy import signal, fft
-import warnings
+import os
+import pickle
+from scipy import signal as sig
+from sklearn.ensemble import RandomForestClassifier
 from typing import Dict, Any, Optional
 
-# 忽略除以零的警告
-warnings.filterwarnings("ignore", category=RuntimeWarning)
+def compute_cyclic_spectrum(signal, fs, alpha, nfft=1024):
+    """
+    计算循环谱密度
+    
+    Args:
+        signal: 输入信号
+        fs: 采样频率
+        alpha: 循环频率
+        nfft: FFT点数
+    
+    Returns:
+        循环谱密度
+    """
+    # 计算短时傅里叶变换
+    f, t, Zxx = sig.stft(signal, fs=fs, nperseg=nfft, noverlap=nfft//2, nfft=nfft)
+    
+    # 计算循环谱密度
+    csd = np.zeros_like(Zxx, dtype=complex)
+    for i in range(len(t)):
+        for j in range(len(f)):
+            # 计算循环频率偏移
+            offset = int(alpha * nfft / fs)
+            if 0 <= j + offset < len(f):
+                csd[j, i] = Zxx[j, i] * np.conj(Zxx[j + offset, i])
+    
+    return csd
 
-def estimate_scd(x, N, L, P, alpha_resolution):
+def extract_features(csd, alpha_range):
     """
-    使用频域平滑法(FAM)估计谱相关密度函数(SCD)
+    从循环谱密度中提取特征
     
-    参数:
-    x: 输入信号
-    N: FFT点数
-    L: 时域平滑窗口长度
-    P: 频域平滑窗口长度
-    alpha_resolution: 循环频率分辨率
+    Args:
+        csd: 循环谱密度
+        alpha_range: 循环频率范围
     
-    返回:
-    SCD: 谱相关密度函数
-    alphas: 循环频率数组
+    Returns:
+        提取的特征
     """
-    # 信号分段
-    segments = []
-    for i in range(0, len(x) - N + 1, L):
-        segments.append(x[i:i+N])
+    # 计算特征 - 这里使用了简单的统计特征
+    features = []
     
-    # 初始化SCD矩阵
-    num_alpha = int(2 / alpha_resolution)
-    SCD = np.zeros((num_alpha, N), dtype=np.complex128)
-    alphas = np.linspace(-1, 1, num_alpha)
+    # 计算每个循环频率的能量
+    for alpha in alpha_range:
+        energy = np.sum(np.abs(csd)**2)
+        features.append(energy)
     
-    # 计算每个段的SCD
-    for seg in segments:
-        X = fft.fft(seg, N)
-        
-        for i, alpha in enumerate(alphas):
-            shift = int(alpha * N / 2)
-            if shift < 0:
-                X1 = np.roll(X, shift)
-                X2 = np.conjugate(np.roll(X, -shift))
-            else:
-                X1 = np.roll(X, -shift)
-                X2 = np.conjugate(np.roll(X, shift))
-            
-            # 频域平滑
-            product = X1 * X2
-            smoothed = np.convolve(product, np.ones(P)/P, mode='same')
-            SCD[i] += smoothed
+    # 计算其他统计特征
+    features.append(np.mean(np.abs(csd)))
+    features.append(np.std(np.abs(csd)))
+    features.append(np.max(np.abs(csd)))
+    features.append(np.min(np.abs(csd)))
     
-    # 平均所有段
-    SCD /= len(segments)
-    return SCD, alphas
+    return np.array(features)
 
-def cyclo_detector(config, signal_segment):
+def train_model(features, labels, model_path):
     """
-    循环平稳特征检测器核心函数
+    训练随机森林分类器
     
-    参数:
-    config: 配置参数
-    signal_segment: 输入信号段
+    Args:
+        features: 特征
+        labels: 标签
+        model_path: 模型保存路径
     
-    返回:
-    decision: 检测结果 (1: 信号存在, 0: 信号不存在)
-    test_statistic: 检验统计量
+    Returns:
+        训练好的模型
     """
-    # 获取配置参数
-    N = config.get("fft_points", 1024)
-    L = config.get("time_window", 64)
-    P = config.get("freq_window", 16)
-    alpha_resolution = config.get("alpha_resolution", 0.01)
-    target_alpha = config.get("target_alpha", 0.2)
+    # 创建随机森林分类器
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
     
-    # 计算SCD
-    SCD, alphas = estimate_scd(signal_segment, N, L, P, alpha_resolution)
+    # 训练模型
+    model.fit(features, labels)
     
-    # 找到最接近目标循环频率的索引
-    alpha_idx = np.argmin(np.abs(alphas - target_alpha))
+    # 保存模型
+    os.makedirs(os.path.dirname(model_path), exist_ok=True)
+    with open(model_path, 'wb') as f:
+        pickle.dump(model, f)
     
-    # 计算检验统计量 (目标alpha处的平均SCD幅度)
-    test_statistic = np.mean(np.abs(SCD[alpha_idx]))
-    
-    # 计算背景噪声水平 (远离目标频率的平均SCD)
-    background_indices = np.where((np.abs(alphas) > 0.3) & (np.abs(alphas) < 0.7))[0]
-    if len(background_indices) > 0:
-        background_level = np.mean(np.abs(SCD[background_indices]))
-    else:
-        background_level = 1e-10  # 默认值
-    
-    # 计算信噪比
-    snr_ratio = test_statistic / (background_level + 1e-10)  # 避免除以零
-    
-    return snr_ratio, test_statistic, background_level
+    return model
 
-def evaluate_performance(decisions, labels):
+def load_model(model_path):
     """
-    评估检测性能
+    加载预训练模型
     
-    参数:
-    decisions: 检测结果数组
-    labels: 真实标签数组
+    Args:
+        model_path: 模型路径
     
-    返回:
-    metrics: 性能指标字典
+    Returns:
+        加载的模型
     """
-    # 确保数组长度相同
-    if len(decisions) != len(labels):
-        raise ValueError("决策数组和标签数组长度不一致")
-    
-    # 计算基本性能指标
-    true_positives = np.sum((decisions == 1) & (labels == 1))
-    false_positives = np.sum((decisions == 1) & (labels == 0))
-    true_negatives = np.sum((decisions == 0) & (labels == 0))
-    false_negatives = np.sum((decisions == 0) & (labels == 1))
-    
-    total = len(labels)
-    
-    # 计算核心性能指标
-    pd = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) > 0 else 0
-    pfa = false_positives / (false_positives + true_negatives) if (false_positives + true_negatives) > 0 else 0
-    pm = false_negatives / (true_positives + false_negatives) if (true_positives + false_negatives) > 0 else 0
-    accuracy = (true_positives + true_negatives) / total
-    
-    return {
-        "detection_probability": float(pd),
-        "false_alarm_probability": float(pfa),
-        "missed_detection_probability": float(pm),
-        "accuracy": float(accuracy),
-        "true_positives": int(true_positives),
-        "false_positives": int(false_positives),
-        "true_negatives": int(true_negatives),
-        "false_negatives": int(false_negatives),
-        "total_samples": int(total)
-    }
+    with open(model_path, 'rb') as f:
+        model = pickle.load(f)
+    return model
 
-def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = None) -> Dict[str, Any]:
+def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = None, mode: str = "predict") -> Dict[str, Any]:
     """
     处理函数 - 实际的算法逻辑
-    
+
     Args:
         config: 配置参数
         signal: 输入信号
         labels: 标签（可选）
-        
+        mode: 运行模式："train", "predict", "evaluate"
+
     Returns:
         dict: 处理结果
     """
-    # 确保信号是二维数组 [num_segments, segment_length]
-    if signal.ndim == 1:
-        signal = signal[np.newaxis, :]
+    # 配置参数
+    fs = config.get("sample_rate", 1000)
+    nfft = config.get("nfft", 1024)
+    alpha_range = np.linspace(config.get("alpha_min", 0.1), 
+                              config.get("alpha_max", 0.5), 
+                              config.get("alpha_steps", 10))
     
-    num_segments = signal.shape[0]
-    decisions = np.zeros(num_segments, dtype=int)
-    test_statistics = np.zeros(num_segments)
-    background_levels = np.zeros(num_segments)
-    snr_ratios = np.zeros(num_segments)
+    # 模型路径
+    model_path = os.path.join(os.path.dirname(__file__), 'models', 'cfd_model.pkl')
     
-    # 处理每个信号段
-    for i in range(num_segments):
-        snr_ratios[i], test_statistics[i], background_levels[i] = cyclo_detector(config, signal[i])
-    
-    # 自适应阈值设置 - 使用更智能的方法确定阈值
-    if labels is not None and len(labels) == num_segments:
-        # 计算信号存在样本的SNR中位数
-        signal_snr = snr_ratios[labels == 1]
-        noise_snr = snr_ratios[labels == 0]
-        
-        if len(signal_snr) > 0 and len(noise_snr) > 0:
-            # 使用Fisher判别法确定最佳阈值
-            mean_signal = np.mean(signal_snr)
-            mean_noise = np.mean(noise_snr)
-            var_signal = np.var(signal_snr)
-            var_noise = np.var(noise_snr)
-            
-            # Fisher判别阈值
-            if var_signal + var_noise > 0:
-                fisher_threshold = (mean_signal * var_noise + mean_noise * var_signal) / (var_signal + var_noise)
-            else:
-                fisher_threshold = (mean_signal + mean_noise) / 2
-            
-            # 使用Fisher阈值
-            decisions = (snr_ratios > fisher_threshold).astype(int)
-            config["best_threshold"] = fisher_threshold
-        else:
-            # 如果缺少标签数据，使用固定阈值
-            threshold = config.get("detection_threshold", 1.5)
-            decisions = (snr_ratios > threshold).astype(int)
-    else:
-        # 如果没有标签，使用固定阈值或上次找到的最佳阈值
-        threshold = config.get("detection_threshold", 1.5)
-        decisions = (snr_ratios > threshold).astype(int)
-    
-    # 处理结果
-    results = {
-        "result": decisions,
-        "snr_ratios": snr_ratios,
-        "test_statistics": test_statistics,
-        "background_levels": background_levels
+    # 初始化结果
+    result = {
+        "result": None,
+        "metrics": {},
+        "log": ""
     }
     
-    # 评估性能
-    if labels is not None and len(labels) == num_segments:
-        metrics = evaluate_performance(decisions, labels)
-        results["metrics"] = metrics
+    # 处理信号
+    if mode == "train":
+        result["log"] = "训练模式"
+        
+        # 提取特征
+        features = []
+        for s in signal:
+            csd = compute_cyclic_spectrum(s, fs, alpha_range[0], nfft)
+            feat = extract_features(csd, alpha_range)
+            features.append(feat)
+        
+        features = np.array(features)
+        
+        # 训练模型
+        model = train_model(features, labels, model_path)
+        result["result"] = "模型训练完成"
+        
+    elif mode in ["predict", "evaluate"]:
+        result["log"] = "预测/评估模式"
+        
+        # 检查模型是否存在
+        if not os.path.exists(model_path):
+            result["log"] += " - 模型不存在，使用默认阈值检测"
+            
+            # 使用默认阈值检测
+            detections = []
+            for s in signal:
+                # 计算循环谱密度
+                csd = compute_cyclic_spectrum(s, fs, alpha_range[0], nfft)
+                
+                # 计算能量
+                energy = np.sum(np.abs(csd)**2)
+                
+                # 使用阈值检测
+                threshold = config.get("detection_threshold", 1e6)
+                detection = 1 if energy > threshold else 0
+                detections.append(detection)
+            
+            result["result"] = np.array(detections)
+            
+        else:
+            # 加载模型
+            model = load_model(model_path)
+            
+            # 提取特征
+            features = []
+            for s in signal:
+                csd = compute_cyclic_spectrum(s, fs, alpha_range[0], nfft)
+                feat = extract_features(csd, alpha_range)
+                features.append(feat)
+            
+            features = np.array(features)
+            
+            # 预测
+            predictions = model.predict(features)
+            result["result"] = predictions
+            
+            # 如果是评估模式，计算性能指标
+            if mode == "evaluate" and labels is not None:
+                from sklearn.metrics import confusion_matrix
+                
+                # 计算混淆矩阵
+                tn, fp, fn, tp = confusion_matrix(labels, predictions).ravel()
+                
+                # 计算性能指标
+                detection_prob = tp / (tp + fn)
+                false_alarm_prob = fp / (fp + tn)
+                accuracy = (tp + tn) / (tp + tn + fp + fn)
+                precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+                recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+                f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+                
+                # 保存性能指标
+                result["metrics"] = {
+                    "detection_probability": detection_prob,
+                    "false_alarm_probability": false_alarm_prob,
+                    "accuracy": accuracy,
+                    "precision": precision,
+                    "recall": recall,
+                    "f1_score": f1_score
+                }
+                
+                result["log"] += f" - 评估完成，检测概率: {detection_prob:.4f}, 虚警概率: {false_alarm_prob:.4f}"
     
-    return results
+    return result

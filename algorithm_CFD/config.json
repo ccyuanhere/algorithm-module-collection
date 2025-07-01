@@ -1,13 +1,12 @@
 {
-    "fft_points": 1024,
-    "time_window": 64,
-    "freq_window": 16,
-    "alpha_resolution": 0.01,
-    "target_alpha": 0.2,
-    "detection_threshold": 1.5,
-    "snr_range": [-20, 0],
-    "signal_type": "BPSK",
-    "symbol_rate": 1000,
-    "min_snr_ratio": 0.5,
-    "max_snr_ratio": 10.0
+    "sample_rate": 1000,
+    "nfft": 1024,
+    "alpha_min": 0.1,
+    "alpha_max": 0.5,
+    "alpha_steps": 10,
+    "detection_threshold": 1e6,
+    "feature_selection": {
+        "use_energy": true,
+        "use_statistics": true
+    }
 }
