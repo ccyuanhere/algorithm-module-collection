@@ -1,49 +1,68 @@
 import numpy as np
+import os
 from typing import Dict, Any, Optional
 
-def generate_bpsk_template(template_bits: np.ndarray, samples_per_bit: int = 8):
+def load_known_template():
     """
-    生成BPSK调制模板信号
-    Args:
-        template_bits: 比特序列 (例如: [1, -1, 1, 1, -1, -1, 1, -1])
-        samples_per_bit: 每个比特的采样点数
-    Returns:
-        复数模板信号
+    加载已知信号模板
     """
-    # 将比特序列扩展到采样点
-    template_signal = np.repeat(template_bits, samples_per_bit).astype(complex)
-    return template_signal
+    try:
+        data_dir = os.path.join(os.path.dirname(__file__), 'data')
+        template_iq = np.load(os.path.join(data_dir, 'known_template.npy'))
+        # 转换为复数格式
+        template_complex = template_iq[:, 0] + 1j * template_iq[:, 1]
+        return template_complex
+    except FileNotFoundError:
+        # 如果没有模板文件，生成默认模板
+        return generate_default_template()
+
+def generate_default_template():
+    """
+    生成默认的巴克码模板
+    """
+    barker_bits = [1, 0, 1, 1, 0, 0, 1, 0]
+    samples_per_bit = 8
+    carrier_freq = 2000
+    sampling_freq = 8000
+    
+    # 基带信号
+    baseband = np.repeat(2 * np.array(barker_bits) - 1, samples_per_bit)
+    
+    # 时间轴
+    t = np.arange(len(baseband)) / sampling_freq
+    
+    # 生成I/Q信号
+    carrier = np.exp(1j * 2 * np.pi * carrier_freq * t)
+    template_complex = baseband * carrier
+    
+    return template_complex
 
 def design_matched_filter(template: np.ndarray):
     """
     设计匹配滤波器
     匹配滤波器的冲激响应 h(t) = s*(T-t)，即已知信号的时间反转共轭
     Args:
-        template: 模板信号
+        template: 模板信号（复数）
     Returns:
         匹配滤波器冲激响应
     """
     # 匹配滤波器 = 模板信号的时间反转共轭
-    # 在离散域: h[n] = s*[N-1-n]
     return np.conj(np.flip(template))
 
 def matched_filter_correlation(signal: np.ndarray, template: np.ndarray):
     """
     执行匹配滤波相关运算
     Args:
-        signal: 输入信号
-        template: 模板信号
+        signal: 输入信号（复数）
+        template: 模板信号（复数）
     Returns:
         相关值和最大相关位置
     """
     # 设计匹配滤波器（时间反转共轭）
     matched_filter = design_matched_filter(template)
     
-    # 方法1: 使用卷积实现匹配滤波
+    # 使用卷积实现匹配滤波
     correlation = np.convolve(signal, matched_filter, mode='full')
-    
-    # 方法2: 或者使用相关函数（数学上等价）
-    # correlation = np.correlate(signal, np.conj(template), mode='full')
     
     # 归一化
     signal_energy = np.sqrt(np.sum(np.abs(signal)**2))
@@ -118,7 +137,7 @@ def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = Non
     
     Args:
         config: 配置参数
-        signal: 输入信号
+        signal: 输入I/Q信号数据，形状为 (N, signal_length, 2) 或 (signal_length, 2)
         labels: 标签（可选）
         mode: 运行模式 ('predict', 'evaluate', 'train')
         
@@ -128,22 +147,16 @@ def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = Non
     try:
         # 获取配置参数
         threshold = config.get('threshold', 0.3)
-        template_type = config.get('template_type', 'bpsk')
-        samples_per_bit = config.get('samples_per_bit', 8)
         
-        # 预定义模板 - BPSK巴克码序列
-        if template_type == 'bpsk':
-            template_bits = np.array([1, -1, 1, 1, -1, -1, 1, -1])  # 8位巴克码
-        else:
-            # 可以扩展其他模板类型
-            template_bits = np.array([1, -1, 1, 1, -1, -1, 1, -1])
+        # 加载已知模板
+        template_complex = load_known_template()
         
-        # 生成模板信号
-        template_signal = generate_bpsk_template(template_bits, samples_per_bit)
+        # 确保输入信号格式正确
+        if signal.ndim == 2:
+            # 单个信号：(signal_length, 2)
+            signal = signal.reshape(1, signal.shape[0], signal.shape[1])
         
-        # 确保信号是二维数组
-        if signal.ndim == 1:
-            signal = signal.reshape(1, -1)
+        num_signals = signal.shape[0]
         
         # 处理每个信号
         detection_results = []
@@ -151,19 +164,21 @@ def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = Non
         detection_positions = []
         all_correlations = []
         
-        for i in range(signal.shape[0]):
-            current_signal = signal[i]
+        for i in range(num_signals):
+            # 将I/Q数据转换为复数信号
+            current_iq = signal[i]  # shape: (signal_length, 2)
+            current_signal = current_iq[:, 0] + 1j * current_iq[:, 1]
             
             # 执行匹配滤波
-            max_corr, max_pos, full_corr = matched_filter_correlation(current_signal, template_signal)
+            max_corr, max_pos, full_corr = matched_filter_correlation(current_signal, template_complex)
             
             detection_values.append(max_corr)
             detection_positions.append(max_pos)
             all_correlations.append(max_corr)
         
-        # 根据模式处理
+        # 根据模式处理结果
         if mode == 'predict':
-            # 预测模式：直接使用配置的阈值进行检测
+            # 预测模式：使用固定阈值进行检测
             detections = np.array(detection_values) > threshold
             
             return {
@@ -171,7 +186,10 @@ def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = Non
                 'detection_values': detection_values,
                 'detection_positions': detection_positions,
                 'correlation_threshold': threshold,
-                'template_used': template_type
+                'template_info': {
+                    'length': len(template_complex),
+                    'type': 'BPSK_8bit_barker'
+                }
             }
             
         elif mode == 'evaluate':
@@ -189,9 +207,12 @@ def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = Non
                 'detection_values': detection_values,
                 'detection_positions': detection_positions,
                 'correlation_threshold': threshold,
-                'template_used': template_type,
                 'metrics': metrics,
-                'confusion_matrix': metrics['confusion_matrix']
+                'confusion_matrix': metrics['confusion_matrix'],
+                'template_info': {
+                    'length': len(template_complex),
+                    'type': 'BPSK_8bit_barker'
+                }
             }
             
         elif mode == 'train':
@@ -199,9 +220,8 @@ def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = Non
             if labels is None:
                 raise ValueError("train模式需要提供labels")
             
-            # 使用标签数据校准最优阈值
             # 尝试不同阈值，找到最佳性能
-            thresholds = np.linspace(0.1, 0.9, 20)
+            thresholds = np.linspace(0.05, 0.8, 30)
             best_threshold = threshold
             best_f1 = 0
             best_metrics = {}
@@ -225,9 +245,11 @@ def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = Non
                 'detection_positions': detection_positions,
                 'correlation_threshold': threshold,  # 原始阈值
                 'calibrated_threshold': best_threshold,  # 校准后阈值
-                'template_used': template_type,
                 'calibration_metrics': best_metrics,
-                'optimal_template': template_bits.tolist()
+                'template_info': {
+                    'length': len(template_complex),
+                    'type': 'BPSK_8bit_barker'
+                }
             }
         
         else:

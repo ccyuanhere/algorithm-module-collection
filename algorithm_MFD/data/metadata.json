@@ -1,0 +1,27 @@
+{
+  "num_samples": 1000,
+  "signal_length": 512,
+  "template_length": 64,
+  "template_bits": [
+    1,
+    0,
+    1,
+    1,
+    0,
+    0,
+    1,
+    0
+  ],
+  "snr_range": [
+    -2,
+    15
+  ],
+  "carrier_freq": 2000,
+  "sampling_freq": 8000,
+  "signal_format": "I/Q",
+  "data_shape": [
+    1000,
+    512,
+    2
+  ]
+}

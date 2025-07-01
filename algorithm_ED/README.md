@@ -35,6 +35,87 @@
 ### 2. 运行算法
 可以通过以下方式调用算法：
 
+#### 输入数据格式
+
+`run.py` 接受字典类型的输入数据，格式如下：
+
+```python
+input_data = {
+    "signal": np.ndarray,     # 输入I/Q信号数据（必需）
+    "labels": np.ndarray,     # 标签数据（可选，evaluate/train模式需要）
+    "mode": str              # 运行模式（必需）
+}
+```
+
+**详细说明：**
+
+1. **signal**: I/Q信号数据
+   - 数据类型：`np.ndarray`
+   - 形状：`(N, signal_length, 2)` 或 `(signal_length, 2)`
+   - 格式：最后一维是[I, Q]分量（实部和虚部）
+   - 示例：`signal.shape = (100, 8192, 2)` 表示100个样本，每个8192个I/Q采样点
+
+2. **labels**: 标签数据（可选）
+   - 数据类型：`np.ndarray`
+   - 形状：`(N,)`
+   - 取值：0表示无主用户信号，1表示有主用户信号
+   - 使用场景：evaluate和train模式必需，predict模式可选
+
+3. **mode**: 运行模式
+   - 数据类型：`str`
+   - 可选值：
+     - `"predict"`: 预测模式 - 对输入信号进行检测
+     - `"evaluate"`: 评估模式 - 需要labels，计算性能指标
+     - `"train"`: 训练模式 - 用于参数校准和优化
+
+#### 输出数据格式
+
+`run.py` 返回统一格式的字典，包含以下字段：
+
+```python
+{
+    "result": dict,          # 主结果（必需）
+    "metrics": dict,         # 评估指标（可为空字典）
+    "log": str,             # 日志信息
+    "success": bool         # 是否成功执行
+}
+```
+
+**不同模式的输出内容：**
+
+1. **predict模式**：
+```python
+{
+    "result": {
+        "detections": [0, 1, 0, ...],        # 检测结果数组
+        "detection_values": [0.8, 1.2, ...], # 检测统计量
+        "energy_windows": [[...], [...]]      # 各窗口能量值
+    },
+    "metrics": {},                           # 空字典
+    "log": "能量检测 - 预测模式\n...",
+    "success": True
+}
+```
+
+2. **evaluate模式**：
+```python
+{
+    "result": {
+        "detections": [0, 1, 0, ...],
+        "detection_values": [0.8, 1.2, ...],
+        "energy_windows": [[...], [...]]
+    },
+    "metrics": {
+        "detection_rate": 0.85,              # 检测率
+        "false_alarm_rate": 0.12,            # 虚警率
+        "accuracy": 0.78,                    # 准确率
+        "recall": 0.85                       # 召回率
+    },
+    "log": "能量检测 - 评估模式\n...",
+    "success": True
+}
+```
+
 #### 直接调用run.pyimport numpy as np
 from run import run
 
