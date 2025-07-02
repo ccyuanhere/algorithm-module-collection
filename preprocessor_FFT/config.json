@@ -1,0 +1,20 @@
+{
+    "default_fft_type": "fft",
+    "default_return_format": "complex",
+    "apply_window": true,
+    "normalize_output": false,
+    "default_window": "hann",
+    "default_sampling_rate": 1000.0,
+    "frequency_analysis": {
+        "compute_centroid": true,
+        "compute_bandwidth": true,
+        "compute_flatness": true,
+        "power_threshold": 0.1
+    },
+    "feature_selection": {
+        "use_magnitude": true,
+        "use_phase": true,
+        "use_power": true,
+        "use_real_imag": false
+    }
+}

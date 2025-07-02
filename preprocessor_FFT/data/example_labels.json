@@ -1,0 +1,782 @@
+[
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "real",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  },
+  {
+    "type": "complex",
+    "sampling_rate": 1000.0,
+    "signal_length": 1024,
+    "frequency_resolution": 0.9765625
+  }
+]

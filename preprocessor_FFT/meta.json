@@ -1,0 +1,30 @@
+{
+    "name": "FFT变换预处理器",
+    "author": "AI Assistant",
+    "task": "preprocessor",
+    "input_type": ["np.ndarray[float32]", "np.ndarray[complex64]"],
+    "input_size": "batch_size * channels * rand",
+    "output_type": ["np.ndarray[complex64]", "np.ndarray[float32]"],
+    "output_size": "batch_size * channels * rand",
+    "description": "快速傅里叶变换（FFT）预处理器，将时域信号转换为频域表示。支持多种FFT类型（FFT、RFFT、IFFT）、多种输出格式（复数、幅度、相位、功率）、窗函数应用、零填充、频谱分析等功能，适用于信号处理、频域分析、特征提取等场景。",
+    "version": "1.0",
+    "tags": ["preprocessing", "fft", "frequency_domain", "signal_processing", "spectrum_analysis"],
+    "dependencies": ["config.json", "scipy"],
+    "example_input": "data/example_input.npy",
+    "supported_features": [
+        "快速傅里叶变换（FFT）",
+        "实数FFT（RFFT）",
+        "逆FFT变换（IFFT/IRFFT）",
+        "多种输出格式（复数/幅度/相位/功率）",
+        "窗函数应用（汉宁/汉明/布莱克曼等）",
+        "零填充扩展",
+        "频谱分析（主频率/功率/带宽等）",
+        "多维信号处理",
+        "频率轴计算",
+        "谱特征提取"
+    ],
+    "algorithm_type": "信号变换",
+    "complexity": "O(n log n)",
+    "memory_usage": "O(n)",
+    "real_time": true
+}
