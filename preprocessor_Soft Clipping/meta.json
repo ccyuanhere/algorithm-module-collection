@@ -1,0 +1,15 @@
+{
+    "name": "Soft Clipping Preprocessor",
+    "author": "C&G",
+    "task": "preprocessor",
+    "input_type": ["np.ndarray[float32]"],
+    "input_size": "batch_size * channels * signal_length",
+    "output_type": ["np.ndarray[float32]"],
+    "output_size": "batch_size * channels * signal_length",
+    "description": "Soft clipping algorithm for signal amplitude control. Prevents harsh distortion while limiting signal peaks.",
+    "version": "1.0.0",
+    "tags": ["signal_processing", "audio_processing", "data_preprocessing"],
+    "dependencies": ["config.json"],
+    "example_input": "data/example_input.npy",
+    "supported_features": ["noise_reduction", "adaptive_clipping", "multi_channel_processing"]
+}

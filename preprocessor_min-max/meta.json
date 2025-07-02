@@ -1,0 +1,27 @@
+{
+    "name": "Min-Max归一化预处理器",
+    "author": "AI Assistant",
+    "task": "preprocessor",
+    "input_type": ["np.ndarray[float32]"],
+    "input_size": "batch_size * channels * rand",
+    "output_type": ["np.ndarray[float32]"],
+    "output_size": "batch_size * channels * rand",
+    "description": "Min-Max归一化预处理算法，将信号值映射到指定区间（如[0,1]或[-1,1]）。支持标准归一化、鲁棒归一化、保持零值归一化等多种模式，可按通道或全局进行归一化处理。",
+    "version": "1.0",
+    "tags": ["preprocessing", "normalization", "min_max", "signal_processing"],
+    "dependencies": ["config.json"],
+    "example_input": "data/example_input.npy",
+    "supported_features": [
+        "标准Min-Max归一化",
+        "鲁棒归一化（基于分位数）",
+        "保持零值归一化",
+        "异常值裁剪",
+        "逆变换恢复",
+        "多轴归一化",
+        "自定义归一化范围"
+    ],
+    "algorithm_type": "数据预处理",
+    "complexity": "O(n)",
+    "memory_usage": "O(n)",
+    "real_time": true
+}

@@ -1,0 +1,9 @@
+{
+    "threshold": 0.6,
+    "alpha": 2.0,
+    "normalization": "min_max",
+    "noise_reduction": true,
+    "adaptive_threshold": true,
+    "channel_specific": false,
+    "peak_threshold_ratio": 0.95
+}
