@@ -1,0 +1,11 @@
+{
+    "wavelet": "sym8",
+    "level": 4,
+    "threshold_mode": "soft",
+    "threshold_multiplier": 0.3,
+    "signal_length": "rand",
+    "normalization": {
+        "enabled": true,
+        "method": "z-score"
+    }
+}

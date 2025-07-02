@@ -1,0 +1,15 @@
+{
+    "name": "Wavelet Denoiser",
+    "author": "C&G",
+    "task": "preprocessor",
+    "input_type": ["np.ndarray[float32]"],
+    "input_size": "batch_size * channels * rand",
+    "output_type": ["np.ndarray[float32]"],
+    "output_size": "batch_size * channels * rand",
+    "description": "Wavelet-based signal denoising algorithm using thresholding techniques. Effective for removing Gaussian noise from signals while preserving important features.",
+    "version": "1.0",
+    "tags": ["signal_processing", "denoising", "wavelet","transient_preservation"],
+    "dependencies": ["config.json"],
+    "example_input": "data/example_input.npy",
+    "supported_features": ["Multi-level decomposition (sym8)", "Adaptive thresholding (0.3x)","SNR boost: 5-10dB", "Transient preservation"]
+}
