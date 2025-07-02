@@ -1,0 +1,14 @@
+{
+    "ddof": 0,
+    "clip_outliers": false,
+    "outlier_threshold": 3.0,
+    "robust_method": false,
+    "center_method": "mean",
+    "scale_method": "std",
+    "feature_selection": {
+        "use_global_norm": true,
+        "use_channel_norm": false,
+        "use_robust_norm": false,
+        "use_quantile_norm": false
+    }
+}

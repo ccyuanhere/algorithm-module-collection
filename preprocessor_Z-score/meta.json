@@ -1,0 +1,27 @@
+{
+    "name": "Z-score标准化预处理器",
+    "author": "AI Assistant",
+    "task": "preprocessor",
+    "input_type": ["np.ndarray[float32]"],
+    "input_size": "batch_size * channels * rand",
+    "output_type": ["np.ndarray[float32]"],
+    "output_size": "batch_size * channels * rand",
+    "description": "Z-score标准化预处理算法，将信号数据变换为均值为0、标准差为1的标准正态分布。支持标准Z-score、鲁棒标准化、分位数标准化等多种方法，可按不同轴进行标准化处理。",
+    "version": "1.0",
+    "tags": ["preprocessing", "standardization", "z_score", "normalization", "signal_processing"],
+    "dependencies": ["config.json"],
+    "example_input": "data/example_input.npy",
+    "supported_features": [
+        "标准Z-score标准化",
+        "鲁棒标准化（基于中位数和MAD）",
+        "分位数标准化",
+        "异常值裁剪",
+        "逆变换恢复",
+        "多轴标准化",
+        "自由度修正"
+    ],
+    "algorithm_type": "数据预处理",
+    "complexity": "O(n)",
+    "memory_usage": "O(n)",
+    "real_time": true
+}
