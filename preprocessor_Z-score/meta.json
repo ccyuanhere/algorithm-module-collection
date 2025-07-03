@@ -1,6 +1,6 @@
 {
     "name": "Z-score标准化预处理器",
-    "author": "AI Assistant",
+    "author": "author001",
     "task": "preprocessor",
     "input_type": ["np.ndarray[float32]"],
     "input_size": "batch_size * channels * rand",

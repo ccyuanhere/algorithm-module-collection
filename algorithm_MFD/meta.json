@@ -1,6 +1,6 @@
 {
 "name": "匹配滤波检测算法",
-"author": "C&G",
+"author": "author001",
 "task": "algorithm",
 "input_type": ["np.ndarray [float32]"],
 "input_size": "batch_size * rand",
