@@ -4,17 +4,21 @@ from typing import Dict, Any, Optional
 def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = None, 
             mode: str = 'predict') -> Dict[str, Any]:
     """
-    处理函数 - 实际的算法逻辑
+    能量检测算法处理函数
     
     Args:
         config: 配置参数
-        signal: 输入信号
-        labels: 标签（可选）
-        mode: 运行模式，'train', 'predict', 'evaluate'
+        signal: 输入信号，形状为(batch_size, signal_length, 2) [I, Q]
+        labels: 标签（仅评估模式需要）
+        mode: 运行模式，'predict' 或 'evaluate'
         
     Returns:
         dict: 处理结果
     """
+    # 验证模式
+    if mode not in ['predict', 'evaluate']:
+        raise ValueError(f"不支持的模式: {mode}，支持的模式: predict, evaluate")
+    
     # 初始化结果字典
     result = {
         "detection_result": None,
@@ -22,115 +26,76 @@ def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = Non
         "log": ""
     }
     
-    # 提取配置参数
-    window_size = config.get("window_size", 1024)
-    threshold_factor = config.get("threshold_factor", 1.5)
-    use_squared_energy = config.get("use_squared_energy", True)
-    feature_selection = config.get("feature_selection", {
-        "use_iq": True,
-        "use_amplitude": True,
-        "use_phase": True,
-        "use_spectrum": True
-    })
-    
-    # 处理信号
     try:
+        # 提取配置参数
+        window_size = config.get("window_size", 1024)
+        threshold_factor = config.get("threshold_factor", 2.0)
+        noise_estimation_method = config.get("noise_estimation_method", "minimum")  # 'minimum', 'percentile'
+        
         # 验证输入信号
         if not isinstance(signal, np.ndarray):
             raise TypeError(f"输入信号必须是numpy数组，得到: {type(signal)}")
         
-        # 信号预处理 - 支持1D、2D和3D信号
-        if signal.ndim == 1:
-            # 单通道信号，扩展维度
-            signal = np.expand_dims(signal, axis=0)
-            result["log"] += f"将1维信号扩展为2维，形状: {signal.shape}\n"
-        elif signal.ndim == 3:
-            # 3D信号通常表示复数信号 (batch_size, signal_length, 2)
-            if signal.shape[2] != 2:
-                raise ValueError(f"3D信号的第三维度必须为2（实部和虚部），得到: {signal.shape[2]}")
-            
-            # 将复数信号转换为模值
-            signal = np.sqrt(np.sum(signal ** 2, axis=2))
-            result["log"] += f"将3维复数信号转换为2维模值信号，形状: {signal.shape}\n"
-        elif signal.ndim > 3:
-            raise ValueError(f"输入信号维度不能超过3，得到: {signal.ndim}")
+        if signal.ndim != 3 or signal.shape[2] != 2:
+            raise ValueError(f"输入信号形状必须为(batch_size, signal_length, 2)，得到: {signal.shape}")
         
-        batch_size, signal_length = signal.shape
+        batch_size, signal_length, _ = signal.shape
+        result["log"] += f"输入信号形状: {signal.shape}\n"
         
         # 验证窗口大小
-        if window_size <= 0:
-            raise ValueError(f"窗口大小必须大于0，得到: {window_size}")
-        if signal_length < window_size:
-            raise ValueError(f"信号长度({signal_length})小于窗口大小({window_size})")
+        if window_size <= 0 or window_size > signal_length:
+            raise ValueError(f"窗口大小必须在(0, {signal_length}]范围内，得到: {window_size}")
         
-        # 计算能量
+        # 将I/Q信号转换为复数形式
+        signal_complex = signal[:, :, 0] + 1j * signal[:, :, 1]
+        
+        # 计算窗口化能量
         num_windows = signal_length // window_size
-        energy = np.zeros((batch_size, num_windows))
-        result["log"] += f"计算能量: 批次大小={batch_size}, 窗口大小={window_size}, 窗口数量={num_windows}\n"
+        energy_matrix = np.zeros((batch_size, num_windows))
         
         for i in range(batch_size):
-            for j in range(0, num_windows * window_size, window_size):
-                window = signal[i, j:j + window_size]
+            for j in range(num_windows):
+                start_idx = j * window_size
+                end_idx = start_idx + window_size
+                window = signal_complex[i, start_idx:end_idx]
                 
-                # 根据配置选择特征
-                if use_squared_energy:
-                    window_energy = np.sum(np.abs(window) ** 2)
-                else:
-                    window_energy = np.sum(np.abs(window))
-                
-                energy[i, j // window_size] = window_energy
+                # 计算窗口能量：|x[n]|²的和
+                window_energy = np.sum(np.abs(window) ** 2)
+                energy_matrix[i, j] = window_energy
         
-        # 计算阈值
-        # 在实际应用中，阈值通常基于噪声功率估计
-        # 这里简化为使用能量的统计特性
-        if mode == 'train' and labels is not None:
-            # 在训练模式下，可以基于标签优化阈值
-            # 这里简化处理，使用固定阈值因子
-            noise_energy = energy[labels == 0]
-            if len(noise_energy) > 0:
-                threshold = np.mean(noise_energy) * threshold_factor 
-                result["log"] += f"使用训练模式阈值: {threshold:.4f} (基于噪声能量)\n"
-            else:
-                threshold = np.mean(energy) * threshold_factor
-                result["log"] += f"使用默认阈值: {threshold:.4f} (所有样本均为主用户)\n"
-        else:
-            # 使用所有样本中最低能量的窗口作为噪声基准
-            min_energy = np.min(energy)
-            threshold = min_energy * threshold_factor * 1.2  # 增加20%的安全裕度
-            result["log"] += f"使用预测模式阈值: {threshold:.4f} (基于最低能量窗口)\n"
+        result["log"] += f"计算窗口化能量: 窗口大小={window_size}, 窗口数量={num_windows}\n"
         
-        # 能量检测决策
-        detection_result = energy > threshold
-        result["log"] += f"检测结果形状: {detection_result.shape}, 主用户占比: {np.mean(detection_result):.4f}\n"
+        # 噪声底阈值计算
+        threshold = calculate_noise_floor_threshold(energy_matrix, threshold_factor, noise_estimation_method)
         
-        # 更新结果
-        result["detection_result"] = detection_result
-        result["log"] += f"能量检测完成，使用窗口大小: {window_size}, 阈值因子: {threshold_factor}\n"
+        result["log"] += f"阈值计算方法: noise_floor, 阈值={threshold:.4f}\n"
         
-        # 如果有标签，计算评估指标
-        if labels is not None:
-            # 验证标签
-            if not isinstance(labels, np.ndarray):
-                raise TypeError(f"标签必须是numpy数组，得到: {type(labels)}")
+        # 能量检测判决
+        detection_result = energy_matrix > threshold
+        
+        # 计算样本级检测结果（任一窗口检测到信号即认为样本有信号）
+        sample_detection = np.any(detection_result, axis=1).astype(int)
+        
+        result["detection_result"] = sample_detection
+        result["log"] += f"完成能量检测，检测到信号的样本数: {np.sum(sample_detection)}/{batch_size}\n"
+        
+        # 评估模式：计算性能指标
+        if mode == 'evaluate':
+            if labels is None:
+                raise ValueError("评估模式需要提供标签")
             
-            # 确保标签长度与批次大小匹配
-            if len(labels) != batch_size:
-                raise ValueError(f"标签数量({len(labels)})与批次大小({batch_size})不匹配")
+            if not isinstance(labels, np.ndarray) or len(labels) != batch_size:
+                raise ValueError(f"标签形状必须为({batch_size},)，得到: {labels.shape if isinstance(labels, np.ndarray) else type(labels)}")
             
-            # 计算评估指标 - 窗口级评估
-            # 注意：标签是样本级的，但我们需要窗口级的评估
-            # 创建窗口级标签：每个样本的所有窗口使用相同的标签
-            window_labels = np.repeat(labels[:, np.newaxis], num_windows, axis=1)
-            
-            metrics = calculate_metrics(detection_result, window_labels)
+            # 计算评估指标
+            metrics = calculate_metrics(sample_detection, labels)
             result["metrics"] = metrics
             
-            # 添加详细的指标日志
             result["log"] += (
-                f"评估指标: 准确率={metrics.get('accuracy', 0):.4f}, "
-                f"精确率={metrics.get('precision', 0):.4f}, "
-                f"召回率={metrics.get('recall', 0):.4f}, "
-                f"虚警率={metrics.get('false_alarm_rate', 0):.4f}\n"
+                f"评估结果: 检测率={metrics['detection_rate']:.3f}, "
+                f"虚警率={metrics['false_alarm_rate']:.3f}, "
+                f"准确率={metrics['accuracy']:.3f}, "
+                f"召回率={metrics['recall']:.3f}\n"
             )
         
         return result
@@ -140,54 +105,88 @@ def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = Non
         error_details = traceback.format_exc()
         result["log"] += f"能量检测处理失败: {str(e)}\n"
         result["log"] += f"错误详情:\n{error_details}\n"
-        # 确保返回完整的结果字典
+        
+        # 确保返回有效的检测结果
         if result["detection_result"] is None:
-            result["detection_result"] = np.array([])
+            result["detection_result"] = np.zeros(signal.shape[0], dtype=int)
+        
         return result
 
-def calculate_metrics(detection_result: np.ndarray, labels: np.ndarray) -> Dict[str, float]:
+def calculate_noise_floor_threshold(energy_matrix: np.ndarray, threshold_factor: float, 
+                                   noise_estimation_method: str) -> float:
+    """
+    噪声底阈值计算方法
+    
+    Args:
+        energy_matrix: 能量矩阵 (batch_size, num_windows)
+        threshold_factor: 阈值因子
+        noise_estimation_method: 噪声估计方法，'minimum' 或 'percentile'
+        
+    Returns:
+        float: 计算得到的阈值
+    """
+    # 将所有窗口能量展平
+    all_energies = energy_matrix.flatten()
+    
+    # 根据噪声估计方法，获取噪声基准
+    if noise_estimation_method == "minimum":
+        # 使用能量直方图的左峰作为噪声基准
+        hist, bin_edges = np.histogram(all_energies, bins=50)
+        peak_idx = np.argmax(hist[:len(hist)//2])  # 只在左半部分找峰
+        noise_floor = bin_edges[peak_idx]
+        
+    elif noise_estimation_method == "percentile":
+        # 使用20%分位数作为噪声基准
+        noise_floor = np.percentile(all_energies, 20)
+        
+    else:
+        raise ValueError(f"不支持的噪声估计方法: {noise_estimation_method}")
+    
+    # 计算阈值
+    effective_factor = max(threshold_factor, 4.0)  # 最小4倍因子
+    threshold = noise_floor * effective_factor
+    
+    return threshold
+
+def calculate_metrics(predictions: np.ndarray, labels: np.ndarray) -> Dict[str, float]:
     """
     计算评估指标
     
     Args:
-        detection_result: 检测结果 (batch_size, num_windows)
-        labels: 真实标签 (batch_size, num_windows)
+        predictions: 预测结果 (batch_size,)
+        labels: 真实标签 (batch_size,)
         
     Returns:
         dict: 评估指标字典
     """
-    # 验证输入
-    if not isinstance(detection_result, np.ndarray) or not isinstance(labels, np.ndarray):
-        raise TypeError("检测结果和标签必须是numpy数组")
+    # 计算混淆矩阵
+    tp = np.sum((predictions == 1) & (labels == 1))  # 真正例
+    tn = np.sum((predictions == 0) & (labels == 0))  # 真负例
+    fp = np.sum((predictions == 1) & (labels == 0))  # 假正例
+    fn = np.sum((predictions == 0) & (labels == 1))  # 假负例
     
-    # 展平所有窗口结果
-    detection_flat = detection_result.flatten()
-    labels_flat = labels.flatten()
-    
-    # 计算TP, TN, FP, FN
-    tp = np.sum((detection_flat == True) & (labels_flat == 1))
-    tn = np.sum((detection_flat == False) & (labels_flat == 0))
-    fp = np.sum((detection_flat == True) & (labels_flat == 0))
-    fn = np.sum((detection_flat == False) & (labels_flat == 1))
-    
-    # 计算指标
+    # 计算各种指标
     total = tp + tn + fp + fn
-    accuracy = (tp + tn) / total if total > 0 else 0
-    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
-    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
-    f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
     
-    # 计算虚警概率和检测概率
+    # 准确率
+    accuracy = (tp + tn) / total if total > 0 else 0
+    
+    # 召回率 (检测率)
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+    detection_rate = recall
+    
+    # 虚警率
     false_alarm_rate = fp / (fp + tn) if (fp + tn) > 0 else 0
-    detection_rate = recall  # 等同于召回率
+    
+    # 精确率
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
     
     return {
-        "accuracy": accuracy,
-        "precision": precision,
-        "recall": recall,
-        "f1_score": f1_score,
-        "false_alarm_rate": false_alarm_rate,
-        "detection_rate": detection_rate,
+        "accuracy": float(accuracy),
+        "detection_rate": float(detection_rate),
+        "false_alarm_rate": float(false_alarm_rate),
+        "recall": float(recall),
+        "precision": float(precision),
         "tp": int(tp),
         "tn": int(tn),
         "fp": int(fp),

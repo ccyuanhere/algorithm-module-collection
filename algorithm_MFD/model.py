@@ -138,8 +138,8 @@ def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = Non
     Args:
         config: 配置参数
         signal: 输入I/Q信号数据，形状为 (N, signal_length, 2) 或 (signal_length, 2)
-        labels: 标签（可选）
-        mode: 运行模式 ('predict', 'evaluate', 'train')
+        labels: 标签（可选，evaluate模式需要）
+        mode: 运行模式 ('predict', 'evaluate')
         
     Returns:
         dict: 处理结果
@@ -214,46 +214,9 @@ def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = Non
                     'type': 'BPSK_8bit_barker'
                 }
             }
-            
-        elif mode == 'train':
-            # 训练模式：参数校准
-            if labels is None:
-                raise ValueError("train模式需要提供labels")
-            
-            # 尝试不同阈值，找到最佳性能
-            thresholds = np.linspace(0.05, 0.8, 30)
-            best_threshold = threshold
-            best_f1 = 0
-            best_metrics = {}
-            
-            for test_threshold in thresholds:
-                test_detections = np.array(detection_values) > test_threshold
-                test_metrics = calculate_performance_metrics(test_detections.astype(int), labels)
-                
-                # 使用F1分数作为优化目标
-                if test_metrics['f1_score'] > best_f1:
-                    best_f1 = test_metrics['f1_score']
-                    best_threshold = test_threshold
-                    best_metrics = test_metrics
-            
-            # 使用最佳阈值进行最终检测
-            final_detections = np.array(detection_values) > best_threshold
-            
-            return {
-                'detections': final_detections.astype(int),
-                'detection_values': detection_values,
-                'detection_positions': detection_positions,
-                'correlation_threshold': threshold,  # 原始阈值
-                'calibrated_threshold': best_threshold,  # 校准后阈值
-                'calibration_metrics': best_metrics,
-                'template_info': {
-                    'length': len(template_complex),
-                    'type': 'BPSK_8bit_barker'
-                }
-            }
         
         else:
-            raise ValueError(f"不支持的模式: {mode}")
+            raise ValueError(f"不支持的模式: {mode}，仅支持predict和evaluate模式")
             
     except Exception as e:
         return {
