@@ -1,8 +1,13 @@
 import os
 import json
 import numpy as np
+import matplotlib.pyplot as plt
 from typing import Dict, Any, Optional
 from model import process
+
+# 设置中文字体
+plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei']
+plt.rcParams['axes.unicode_minus'] = False
 
 def run(input_data: Dict[str, Any], config_path: Optional[str] = None) -> Dict[str, Any]:
     """
@@ -114,8 +119,110 @@ def run(input_data: Dict[str, Any], config_path: Optional[str] = None) -> Dict[s
             "success": False
         }
 
+def visualize_fft_analysis(signal, fft_result, sampling_rate=1000, signal_index=0, save_dir=None):
+    """
+    可视化FFT分析结果
+    
+    Args:
+        signal: 原始信号（可能是复数）
+        fft_result: FFT变换结果
+        sampling_rate: 采样率
+        signal_index: 信号索引
+        save_dir: 保存目录
+    """
+    
+    # 确保保存目录存在
+    if save_dir is None:
+        save_dir = os.path.join(os.path.dirname(__file__), 'assets')
+    os.makedirs(save_dir, exist_ok=True)
+    
+    # 创建时间和频率轴
+    N = len(signal)
+    time_axis = np.arange(N) / sampling_rate
+    freq_axis = np.fft.fftfreq(N, 1/sampling_rate)
+    
+    # 判断是否为复数信号
+    is_complex = np.iscomplexobj(signal)
+    
+    # 创建图形
+    if is_complex:
+        fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+        fig.suptitle(f'FFT变换分析 - 复数信号 #{signal_index}', fontsize=16)
+        
+        # 时域信号 - 实部和虚部
+        axes[0, 0].plot(time_axis, signal.real, 'b-', label='实部', linewidth=0.8)
+        axes[0, 0].plot(time_axis, signal.imag, 'r-', label='虚部', linewidth=0.8)
+        axes[0, 0].set_xlabel('时间 (s)')
+        axes[0, 0].set_ylabel('信号幅度')
+        axes[0, 0].set_title('时域信号')
+        axes[0, 0].legend()
+        axes[0, 0].grid(True, alpha=0.3)
+        
+        # 复数信号的模长
+        magnitude = np.abs(signal)
+        axes[0, 1].plot(time_axis, magnitude, 'g-', linewidth=0.8)
+        axes[0, 1].set_xlabel('时间 (s)')
+        axes[0, 1].set_ylabel('信号模长')
+        axes[0, 1].set_title('复数信号模长')
+        axes[0, 1].grid(True, alpha=0.3)
+        
+    else:
+        fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+        fig.suptitle(f'FFT变换分析 - 实数信号 #{signal_index}', fontsize=16)
+        
+        # 时域信号
+        axes[0, 0].plot(time_axis, signal, 'b-', linewidth=0.8)
+        axes[0, 0].set_xlabel('时间 (s)')
+        axes[0, 0].set_ylabel('信号幅度')
+        axes[0, 0].set_title('时域信号')
+        axes[0, 0].grid(True, alpha=0.3)
+        
+        # 信号统计信息
+        signal_stats = {
+            '均值': np.mean(signal),
+            '标准差': np.std(signal),
+            '最大值': np.max(signal),
+            '最小值': np.min(signal),
+            '峰峰值': np.max(signal) - np.min(signal)
+        }
+        
+        stats_text = '\n'.join([f'{k}: {v:.4f}' for k, v in signal_stats.items()])
+        axes[0, 1].text(0.1, 0.9, stats_text, transform=axes[0, 1].transAxes, 
+                       fontsize=12, verticalalignment='top', 
+                       bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+        axes[0, 1].set_title('信号统计信息')
+        axes[0, 1].axis('off')
+    
+    # 幅度谱
+    magnitude_spectrum = np.abs(fft_result)
+    # 只显示正频率部分
+    half_N = N // 2
+    axes[1, 0].plot(freq_axis[:half_N], magnitude_spectrum[:half_N], 'r-', linewidth=0.8)
+    axes[1, 0].set_xlabel('频率 (Hz)')
+    axes[1, 0].set_ylabel('幅度')
+    axes[1, 0].set_title('幅度谱')
+    axes[1, 0].grid(True, alpha=0.3)
+    
+    # 相位谱
+    phase_spectrum = np.angle(fft_result)
+    axes[1, 1].plot(freq_axis[:half_N], phase_spectrum[:half_N], 'g-', linewidth=0.8)
+    axes[1, 1].set_xlabel('频率 (Hz)')
+    axes[1, 1].set_ylabel('相位 (弧度)')
+    axes[1, 1].set_title('相位谱')
+    axes[1, 1].grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    
+    # 保存图像
+    filename = f'fft_analysis_signal_{signal_index}.png'
+    filepath = os.path.join(save_dir, filename)
+    plt.savefig(filepath, dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    return filepath
+
 def test():
-    """简单的测试函数"""
+    """测试函数，展示FFT变换效果"""
     print("=== FFT变换预处理测试 ===")
     
     # 加载测试数据
@@ -129,78 +236,83 @@ def test():
         print("未找到测试数据，请先运行 make.py 生成数据")
         return
     
-    # 测试不同FFT类型
-    fft_types = ['fft', 'rfft']
+    # 选择几个代表性信号进行测试
+    test_indices = [0, 20, 40, 80, 100]  # 包含实数和复数信号
+    sampling_rate = 1000.0
+    
+    for i, idx in enumerate(test_indices):
+        if idx >= len(test_signal):
+            continue
+            
+        signal_data = test_signal[idx]  # 形状: (2, 1024)
+        
+        # 构造复数信号
+        if idx < 80:  # 实数信号
+            signal = signal_data[0]  # 只取实部
+            signal_type = "实数"
+        else:  # 复数信号
+            signal = signal_data[0] + 1j * signal_data[1]
+            signal_type = "复数"
+        
+        print(f"\n--- 测试信号 #{idx} ({signal_type}) ---")
+        print(f"信号形状: {signal.shape}")
+        print(f"数据类型: {signal.dtype}")
+        print(f"数值范围: [{np.min(np.abs(signal)):.4f}, {np.max(np.abs(signal)):.4f}]")
+        
+        # 执行FFT变换
+        input_data = {
+            "signal": signal,
+            "fft_type": "fft",
+            "return_format": "complex",
+            "mode": "analyze",
+            "sampling_rate": sampling_rate
+        }
+        
+        result = run(input_data)
+        
+        if result['success']:
+            fft_result = result['result']
+            metrics = result['metrics']
+            
+            print(f"FFT变换成功:")
+            print(f"  输出形状: {fft_result.shape}")
+            print(f"  主频率: {metrics.get('dominant_frequency', 'N/A')} Hz")
+            print(f"  总功率: {metrics.get('total_power', 'N/A'):.4f}")
+            print(f"  频率分辨率: {metrics.get('frequency_resolution', 'N/A')} Hz")
+            
+            # 生成可视化
+            filepath = visualize_fft_analysis(signal, fft_result, sampling_rate, idx)
+            print(f"  可视化保存到: {filepath}")
+            
+        else:
+            print(f"FFT变换失败: {result['log']}")
+    
+    # 展示不同返回格式的效果
+    print(f"\n--- 不同返回格式测试 ---")
+    
+    test_signal_single = test_signal[0][0]  # 取第一个实数信号
     return_formats = ['complex', 'magnitude', 'phase', 'power']
     
-    for fft_type in fft_types:
-        print(f"\n--- {fft_type.upper()}变换测试 ---")
-        
-        for return_format in return_formats:
-            if fft_type == 'rfft' and return_format == 'complex':
-                continue  # RFFT通常不返回复数格式用于演示
-            
-            print(f"\n{return_format}格式:")
-            
-            input_data = {
-                "signal": test_signal[0],  # 测试第一个信号
-                "fft_type": fft_type,
-                "return_format": return_format,
-                "mode": "transform"
-            }
-            
-            result = run(input_data)
-            
-            if result['success']:
-                fft_result = result['result']
-                print(f"  输出形状: {fft_result.shape}")
-                print(f"  数据类型: {fft_result.dtype}")
-                if np.iscomplexobj(fft_result):
-                    print(f"  数值范围: 实部[{fft_result.real.min():.2f}, {fft_result.real.max():.2f}], 虚部[{fft_result.imag.min():.2f}, {fft_result.imag.max():.2f}]")
-                else:
-                    print(f"  数值范围: [{fft_result.min():.2f}, {fft_result.max():.2f}]")
-            else:
-                print(f"  测试失败: {result['log']}")
-    
-    # 测试频谱分析模式
-    print(f"\n--- 频谱分析模式测试 ---")
-    
-    input_data = {
-        "signal": test_signal[0],
-        "sampling_rate": 1000,  # 1kHz采样率
-        "mode": "analyze"
-    }
-    
-    result = run(input_data)
-    
-    if result['success']:
-        analysis = result['metrics']
-        print(f"主频率: {analysis.get('dominant_frequency', 'N/A')} Hz")
-        print(f"频率分辨率: {analysis.get('frequency_resolution', 'N/A')} Hz")
-        print(f"信号功率: {analysis.get('total_power', 'N/A')}")
-        print(f"频带范围: {analysis.get('frequency_range', 'N/A')} Hz")
-    else:
-        print(f"分析失败: {result['log']}")
-    
-    # 测试窗函数
-    print(f"\n--- 窗函数测试 ---")
-    
-    windows = ['hann', 'hamming', 'blackman', 'kaiser']
-    
-    for window in windows:
+    for return_format in return_formats:
         input_data = {
-            "signal": test_signal[0],
-            "window": window,
-            "return_format": "magnitude",
+            "signal": test_signal_single,
+            "return_format": return_format,
             "mode": "transform"
         }
         
         result = run(input_data)
         
         if result['success']:
-            print(f"  {window}窗: 成功，输出形状 {result['result'].shape}")
+            output = result['result']
+            print(f"  {return_format}: 形状 {output.shape}, 数据类型 {output.dtype}")
+            if np.iscomplexobj(output):
+                print(f"    数值范围: 实部[{output.real.min():.4f}, {output.real.max():.4f}], 虚部[{output.imag.min():.4f}, {output.imag.max():.4f}]")
+            else:
+                print(f"    数值范围: [{output.min():.4f}, {output.max():.4f}]")
         else:
-            print(f"  {window}窗: 失败")
+            print(f"  {return_format}: 失败")
+    
+    print("\n=== 测试完成 ===")
 
 if __name__ == "__main__":
     test()

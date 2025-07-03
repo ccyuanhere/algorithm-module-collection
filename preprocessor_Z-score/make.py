@@ -202,74 +202,13 @@ def generate_example_data():
     print(f"全局标准差: {all_signals.std():.4f}")
     print(f"数据类型: {all_signals.dtype}")
     
-    # 生成对应的标准化输出（使用不同方法）
-    outputs = []
-    labels = []
-    
-    for i, signal in enumerate(all_signals):
-        # 随机选择标准化方法
-        methods = ['standard', 'robust', 'quantile', 'clipped']
-        method = methods[i % len(methods)]
-        
-        if method == 'standard':
-            # 标准Z-score
-            mean_val = signal.mean()
-            std_val = signal.std()
-            if std_val == 0:
-                standardized = np.zeros_like(signal)
-            else:
-                standardized = (signal - mean_val) / std_val
-                
-        elif method == 'robust':
-            # 鲁棒标准化（基于中位数和MAD）
-            median_val = np.median(signal)
-            mad = np.median(np.abs(signal - median_val))
-            if mad == 0:
-                standardized = np.zeros_like(signal)
-            else:
-                standardized = (signal - median_val) / (mad * 1.4826)
-                
-        elif method == 'quantile':
-            # 分位数标准化
-            q25 = np.percentile(signal, 25)
-            q75 = np.percentile(signal, 75)
-            iqr = q75 - q25
-            if iqr == 0:
-                standardized = np.zeros_like(signal)
-            else:
-                median_val = np.median(signal)
-                standardized = (signal - median_val) / (iqr / 1.349)
-                
-        else:  # clipped
-            # 裁剪异常值的标准化
-            mean_val = signal.mean()
-            std_val = signal.std()
-            if std_val == 0:
-                standardized = np.zeros_like(signal)
-            else:
-                standardized = (signal - mean_val) / std_val
-                standardized = np.clip(standardized, -3, 3)  # 裁剪到±3σ
-        
-        outputs.append(standardized)
-        labels.append(method)
-    
-    outputs = np.array(outputs)
-    
-    print(f"\n=== 标准化后统计 ===")
-    print(f"标准化数据均值: {outputs.mean():.6f}")
-    print(f"标准化数据标准差: {outputs.std():.6f}")
-    print(f"标准化数据范围: [{outputs.min():.4f}, {outputs.max():.4f}]")
-    
-    # 保存数据
+    # 保存输入数据
     np.save(os.path.join(data_dir, 'example_input.npy'), all_signals.astype(np.float32))
-    np.save(os.path.join(data_dir, 'example_output.npy'), outputs.astype(np.float32))
-    np.save(os.path.join(data_dir, 'example_labels.npy'), np.array(labels))
     
     print(f"\n=== 数据保存完成 ===")
     print(f"输入数据: {all_signals.shape} -> example_input.npy")
-    print(f"输出数据: {outputs.shape} -> example_output.npy")
-    print(f"标签数据: {len(labels)} -> example_labels.npy")
     print(f"数据保存到: {data_dir}")
+    print(f"注: Z-score标准化算法只需要输入数据，运行时会实时计算标准化结果")
 
 if __name__ == "__main__":
     generate_example_data()

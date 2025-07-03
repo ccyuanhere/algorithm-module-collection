@@ -258,59 +258,17 @@ def generate_example_data():
     print(f"复数信号数量: {complex_signals.shape[0]}")
     print(f"数据范围: [{all_signals.min():.4f}, {all_signals.max():.4f}]")
     
-    # 4. 生成对应的FFT输出
-    print(f"\n--- 计算FFT输出 ---")
-    
-    outputs = []
-    labels = []
-    
-    for i, signal_2ch in enumerate(all_signals):
-        # 重新构造复数信号
-        if i < len(real_signals):
-            # 实数信号
-            signal = signal_2ch[0]  # 只取实部
-            fft_result = np.fft.fft(signal)
-            label_type = 'real'
-        else:
-            # 复数信号
-            signal = signal_2ch[0] + 1j * signal_2ch[1]
-            fft_result = np.fft.fft(signal)
-            label_type = 'complex'
-        
-        # 计算幅度谱
-        magnitude_spectrum = np.abs(fft_result)
-        outputs.append(magnitude_spectrum)
-        labels.append({
-            'type': label_type,
-            'sampling_rate': sampling_rate,
-            'signal_length': signal_length,
-            'frequency_resolution': sampling_rate / signal_length
-        })
-    
-    outputs = np.array(outputs)
-    
-    # 5. 保存数据
-    np.save(os.path.join(data_dir, 'example_input.npy'), all_signals.astype(np.float32))
-    np.save(os.path.join(data_dir, 'example_output.npy'), outputs.astype(np.float32))
-    
-    # 保存标签信息
-    import json
-    with open(os.path.join(data_dir, 'example_labels.json'), 'w') as f:
-        json.dump(labels, f, indent=2)
-    
-    # 创建简化的标签数组
-    label_array = np.array([1 if label['type'] == 'complex' else 0 for label in labels])
-    np.save(os.path.join(data_dir, 'example_labels.npy'), label_array)
+    # 4. 保存输入数据
+    input_file = os.path.join(data_dir, 'example_input.npy')
+    np.save(input_file, all_signals.astype(np.float32))
     
     print(f"\n=== 数据保存完成 ===")
     print(f"输入数据: {all_signals.shape} -> example_input.npy")
-    print(f"输出数据: {outputs.shape} -> example_output.npy")
-    print(f"标签数据: {len(labels)} -> example_labels.json")
-    print(f"标签数组: {label_array.shape} -> example_labels.npy")
     print(f"采样率: {sampling_rate} Hz")
     print(f"信号长度: {signal_length} 采样点")
     print(f"频率分辨率: {sampling_rate/signal_length:.2f} Hz")
     print(f"数据保存到: {data_dir}")
+    print(f"\n注意: FFT变换结果将在运行时动态计算和展示")
 
 if __name__ == "__main__":
     generate_example_data()

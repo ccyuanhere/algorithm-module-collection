@@ -1,12 +1,5 @@
 {
     "default_range": [0, 1],
     "clip_outliers": false,
-    "outlier_percentile": 1.0,
-    "preserve_zero": false,
-    "robust_quantiles": [0.25, 0.75],
-    "feature_selection": {
-        "use_global_norm": true,
-        "use_channel_norm": false,
-        "use_robust_norm": false
-    }
+    "preserve_zero": false
 }

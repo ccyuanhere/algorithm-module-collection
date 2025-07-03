@@ -181,18 +181,13 @@ def generate_example_data():
         outputs.append(normalized)
         labels.append(norm_range)
     
-    outputs = np.array(outputs)
-    
-    # 保存数据
+    # 保存数据（只保存输入数据）
     np.save(os.path.join(data_dir, 'example_input.npy'), all_signals.astype(np.float32))
-    np.save(os.path.join(data_dir, 'example_output.npy'), outputs.astype(np.float32))
-    np.save(os.path.join(data_dir, 'example_labels.npy'), np.array(labels))
     
     print(f"\n=== 数据保存完成 ===")
     print(f"输入数据: {all_signals.shape} -> example_input.npy")
-    print(f"输出数据: {outputs.shape} -> example_output.npy")
-    print(f"标签数据: {len(labels)} -> example_labels.npy")
     print(f"数据保存到: {data_dir}")
+    print(f"数据包含 {all_signals.shape[0]} 个信号样本，用于测试归一化算法效果")
 
 if __name__ == "__main__":
     generate_example_data()

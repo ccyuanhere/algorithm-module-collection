@@ -11,7 +11,7 @@ def zscore_standardize(signal: np.ndarray,
     
     Args:
         signal: 输入信号
-        axis: 标准化轴
+        axis: 标准化轴，None表示按样本标准化
         ddof: 标准差计算的自由度修正
         clip_outliers: 是否裁剪异常值
         outlier_std_threshold: 异常值阈值（标准差倍数）
@@ -19,6 +19,17 @@ def zscore_standardize(signal: np.ndarray,
     Returns:
         tuple: (标准化信号, 统计信息)
     """
+    
+    # 确定标准化策略
+    if axis is None:
+        # 默认情况：对每个样本独立进行标准化
+        # 假设数据形状为 (n_samples, n_channels, signal_length)
+        if len(signal.shape) >= 2:
+            # 对每个样本的所有通道和时间点进行标准化
+            axis = tuple(range(1, len(signal.shape)))  # 保留第一维（样本维）
+        else:
+            # 一维数据，全局标准化
+            axis = None
     
     # 计算均值和标准差
     if axis is None:
@@ -38,16 +49,28 @@ def zscore_standardize(signal: np.ndarray,
     if clip_outliers:
         standardized = np.clip(standardized, -outlier_std_threshold, outlier_std_threshold)
     
+    # 验证标准化结果
+    if axis is None:
+        final_mean = np.mean(standardized)
+        final_std = np.std(standardized)
+    else:
+        # 对于多维数据，计算每个样本的均值和标准差
+        sample_means = np.mean(standardized, axis=axis)
+        sample_stds = np.std(standardized, axis=axis)
+        final_mean = np.mean(sample_means)
+        final_std = np.mean(sample_stds)
+    
     # 统计信息
     statistics = {
         'original_mean': float(np.mean(mean_val)),
         'original_std': float(np.mean(std_val)),
-        'standardized_mean': float(np.mean(standardized)),
-        'standardized_std': float(np.std(standardized)),
+        'standardized_mean': float(final_mean),
+        'standardized_std': float(final_std),
         'axis': axis,
         'ddof': ddof,
         'clip_outliers': clip_outliers,
-        'outlier_threshold': outlier_std_threshold if clip_outliers else None
+        'outlier_threshold': outlier_std_threshold if clip_outliers else None,
+        'verification_passed': abs(final_mean) < 1e-10 and abs(final_std - 1.0) < 1e-6
     }
     
     return standardized, statistics
@@ -81,13 +104,20 @@ def robust_zscore_standardize(signal: np.ndarray,
     
     Args:
         signal: 输入信号
-        axis: 标准化轴
+        axis: 标准化轴，None表示按样本标准化
         center_method: 中心化方法 ('median', 'mean')
         scale_method: 缩放方法 ('mad', 'iqr', 'std')
         
     Returns:
         tuple: (标准化信号, 统计信息)
     """
+    
+    # 确定标准化策略（与zscore_standardize保持一致）
+    if axis is None:
+        if len(signal.shape) >= 2:
+            axis = tuple(range(1, len(signal.shape)))
+        else:
+            axis = None
     
     # 计算中心值
     if center_method == 'median':
@@ -132,15 +162,26 @@ def robust_zscore_standardize(signal: np.ndarray,
     # 鲁棒标准化
     standardized = (signal - center) / scale
     
+    # 验证标准化结果
+    if axis is None:
+        final_mean = np.mean(standardized)
+        final_std = np.std(standardized)
+    else:
+        sample_means = np.mean(standardized, axis=axis)
+        sample_stds = np.std(standardized, axis=axis)
+        final_mean = np.mean(sample_means)
+        final_std = np.mean(sample_stds)
+    
     # 统计信息
     statistics = {
         'center_value': float(np.mean(center)),
         'scale_value': float(np.mean(scale)),
         'center_method': center_method,
         'scale_method': scale_method,
-        'standardized_mean': float(np.mean(standardized)),
-        'standardized_std': float(np.std(standardized)),
-        'method': 'robust'
+        'standardized_mean': float(final_mean),
+        'standardized_std': float(final_std),
+        'method': 'robust',
+        'axis': axis
     }
     
     return standardized, statistics

@@ -15,17 +15,16 @@ preprocessor_FFT/
 ├── README.md                   # 【必需】使用说明
 ├── requirements.txt            # 【必需】依赖列表
 ├── make.py                     # 【可选】数据生成脚本
-└── data/                       # 【必需】示例输入输出数据
-    ├── example_input.npy
-    ├── example_output.npy
-    ├── example_labels.npy
-    └── example_labels.json
+├── data/                       # 【必需】示例输入数据
+│   └── example_input.npy
+└── assets/                     # 【自动生成】FFT效果展示图
+    └── fft_analysis_signal_*.png
 ```
 
 ## 依赖项
 
 ```bash
-pip install numpy scipy
+pip install numpy scipy matplotlib
 ```
 
 ## 使用方法
@@ -45,9 +44,196 @@ python make.py
 ```python
 input_data = {
     "signal": np.ndarray,             # 输入时域信号数据（必需）
-    "fft_type": str,                  # FFT类型（可选）
-    "return_format": str,             # 返回格式（可选）
-    "window": str,                    # 窗函数类型（可选）
+    "fft_type": str,                  # FFT类型（可选，默认"fft"）
+    "return_format": str,             # 返回格式（可选，默认"complex"）
+    "window": str,                    # 窗函数类型（可选，默认"hann"）
+    "sampling_rate": float,           # 采样率（可选，默认1000.0）
+    "mode": str                       # 运行模式（可选，默认"transform"）
+}
+```
+
+#### 参数说明
+
+- **signal**: 输入信号数组
+  - 实数信号: 一维数组 `(N,)`
+  - 复数信号: 一维复数数组 `(N,)` 或 二维数组 `(2, N)` (实部,虚部)
+  
+- **fft_type**: FFT变换类型
+  - `"fft"`: 标准FFT变换
+  - `"rfft"`: 实数信号FFT（只返回正频率）
+  - `"ifft"`: 逆FFT变换
+  - `"irfft"`: 实数信号逆FFT变换
+
+- **return_format**: 输出格式
+  - `"complex"`: 复数形式（默认）
+  - `"magnitude"`: 幅度谱
+  - `"phase"`: 相位谱
+  - `"power"`: 功率谱
+  - `"magnitude_phase"`: 幅度和相位
+
+- **window**: 窗函数类型
+  - `"hann"`: 汉宁窗（默认）
+  - `"hamming"`: 汉明窗
+  - `"blackman"`: 布莱克曼窗
+  - `"kaiser"`: 凯泽窗
+  - `"none"`: 不应用窗函数
+
+- **mode**: 运行模式
+  - `"transform"`: 变换模式 - 执行FFT变换
+  - `"inverse"`: 逆变换模式 - 执行IFFT逆变换
+  - `"analyze"`: 分析模式 - 进行频谱分析
+
+#### 输出数据格式
+
+```python
+{
+    "result": np.ndarray,    # FFT变换结果
+    "metrics": dict,         # 频谱分析统计信息
+    "log": str,             # 日志信息
+    "success": bool         # 是否成功
+}
+```
+
+#### metrics 包含的频谱分析信息：
+- `dominant_frequency`: 主频率 (Hz)
+- `frequency_resolution`: 频率分辨率 (Hz)
+- `total_power`: 总功率
+- `frequency_range`: 有效频率范围 (Hz)
+
+### 3. 运行示例
+
+#### 基本FFT变换
+
+```python
+from run import run
+import numpy as np
+
+# 创建测试信号
+t = np.linspace(0, 1, 1000)
+signal = np.sin(2 * np.pi * 50 * t) + 0.5 * np.sin(2 * np.pi * 120 * t)
+
+# 执行FFT变换
+input_data = {
+    "signal": signal,
+    "fft_type": "fft",
+    "return_format": "magnitude",
+    "sampling_rate": 1000
+}
+
+result = run(input_data)
+if result["success"]:
+    magnitude_spectrum = result["result"]
+    print("FFT变换成功!")
+```
+
+#### 频谱分析模式
+
+```python
+# 频谱分析
+input_data = {
+    "signal": signal,
+    "mode": "analyze",
+    "sampling_rate": 1000
+}
+
+result = run(input_data)
+if result["success"]:
+    print(f"主频率: {result['metrics']['dominant_frequency']} Hz")
+    print(f"总功率: {result['metrics']['total_power']}")
+```
+
+### 4. 测试和可视化
+
+```bash
+python run.py
+```
+
+运行测试将：
+- 加载示例数据进行FFT变换
+- 测试不同的返回格式和参数
+- 生成时域和频域对比的可视化图像
+- 保存分析结果到 `assets/` 目录
+
+## FFT算法效果展示
+
+### 信号类型支持
+
+1. **实数信号**
+   - 单频正弦波
+   - 多频叠加信号
+   - 线性调频信号(Chirp)
+   - 脉冲信号
+   - 各种噪声信号
+
+2. **复数信号**
+   - QPSK调制信号
+   - QAM调制信号
+   - FSK调制信号
+   - 复数正弦波
+
+### 可视化效果
+
+运行测试后将在 `assets/` 目录生成可视化图像，包括：
+
+- **时域信号**: 原始信号波形
+- **信号统计**: 均值、标准差、峰峰值等
+- **幅度谱**: 频域幅度分布
+- **相位谱**: 频域相位分布
+
+### 算法特点
+
+- ✅ **高效计算**: 基于NumPy的FFT实现，计算速度快
+- ✅ **多格式输出**: 支持复数、幅度、相位、功率等多种输出格式
+- ✅ **窗函数支持**: 集成多种窗函数减少频谱泄漏
+- ✅ **频谱分析**: 自动计算主频率、功率等关键参数
+- ✅ **复数信号**: 完整支持I/Q信号处理
+- ✅ **可视化展示**: 自动生成时频域对比图
+
+## 配置参数
+
+`config.json` 中的默认配置：
+
+```json
+{
+    "default_fft_type": "fft",
+    "default_return_format": "complex", 
+    "apply_window": true,
+    "default_window": "hann",
+    "default_sampling_rate": 1000.0
+}
+```
+
+## API接口
+
+### 主要函数
+
+```python
+def run(input_data: Dict[str, Any], config_path: Optional[str] = None) -> Dict[str, Any]
+```
+
+执行FFT变换的标准接口。
+
+### 可视化函数
+
+```python
+def visualize_fft_analysis(signal, fft_result, sampling_rate=1000, signal_index=0, save_dir=None)
+```
+
+生成FFT分析的可视化图像。
+
+## 注意事项
+
+1. **信号长度**: 建议使用2的幂次长度以获得最佳性能
+2. **采样率**: 确保采样率满足奈奎斯特定理
+3. **窗函数**: 对于非周期信号建议使用窗函数减少频谱泄漏
+4. **复数信号**: 输入复数信号时可使用一维复数数组或二维实数数组格式
+5. **内存使用**: 大信号处理时注意内存占用
+
+## 版本信息
+
+- 版本: 1.0.0
+- 作者: Algorithm Team
+- 更新日期: 2024-01
     "zero_padding": int,              # 零填充长度（可选）
     "sampling_rate": float,           # 采样率（可选）
     "mode": str                       # 运行模式（必需）
