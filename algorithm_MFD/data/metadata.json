@@ -1,10 +1,9 @@
 {
   "num_samples": 1000,
   "signal_length": 512,
-  "template_length": 64,
+  "template_length": 56,
   "template_bits": [
     1,
-    0,
     1,
     1,
     0,

@@ -21,10 +21,10 @@ def generate_bpsk_signal(bits, samples_per_bit=8, carrier_freq=2000, sampling_fr
 
 def generate_known_template():
     """
-    生成已知信号模板（8位巴克码）
+    生成已知信号模板（7位巴克码）
     """
-    # 8位巴克码
-    barker_bits = [1, 0, 1, 1, 0, 0, 1, 0]
+    # 7位巴克码（标准序列）[1, 1, 1, -1, -1, 1, -1] 转换为 [1, 1, 1, 0, 0, 1, 0]
+    barker_bits = [1, 1, 1, 0, 0, 1, 0]  # 7位巴克码（0/1格式）
     
     # 生成BPSK调制的I/Q模板
     template_iq = generate_bpsk_signal(barker_bits, samples_per_bit=8)

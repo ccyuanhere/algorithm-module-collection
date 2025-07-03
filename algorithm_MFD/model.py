@@ -18,9 +18,10 @@ def load_known_template():
 
 def generate_default_template():
     """
-    生成默认的巴克码模板
+    生成默认的7位巴克码模板
     """
-    barker_bits = [1, 0, 1, 1, 0, 0, 1, 0]
+    # 7位巴克码（标准序列）[1, 1, 1, -1, -1, 1, -1] 转换为 [1, 1, 1, 0, 0, 1, 0]
+    barker_bits = [1, 1, 1, 0, 0, 1, 0]  # 7位巴克码（0/1格式）
     samples_per_bit = 8
     carrier_freq = 2000
     sampling_freq = 8000
@@ -188,7 +189,7 @@ def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = Non
                 'correlation_threshold': threshold,
                 'template_info': {
                     'length': len(template_complex),
-                    'type': 'BPSK_8bit_barker'
+                    'type': 'BPSK_7bit_barker'
                 }
             }
             
@@ -211,7 +212,7 @@ def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = Non
                 'confusion_matrix': metrics['confusion_matrix'],
                 'template_info': {
                     'length': len(template_complex),
-                    'type': 'BPSK_8bit_barker'
+                    'type': 'BPSK_7bit_barker'
                 }
             }
         
