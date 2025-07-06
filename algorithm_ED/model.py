@@ -1,5 +1,6 @@
 import numpy as np
 from typing import Dict, Any, Optional
+import torch
 
 def process(config: dict, signal: np.ndarray, labels: Optional[np.ndarray] = None, 
             mode: str = 'predict') -> Dict[str, Any]:
